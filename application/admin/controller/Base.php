@@ -15,8 +15,6 @@ class Base extends Controller {
     protected $controller;
     protected $upload_base_path;
     protected $rename_base_path;
-    protected $token;
-    protected $encodingAesKey;
     protected $config;
     protected $mp_config;
 
@@ -26,19 +24,12 @@ class Base extends Controller {
         $this->controller = request()->controller();
         $this->upload_base_path = 'upload/admin/';
         $this->rename_base_path = 'upload/api/';
-        $this->token = config('wx_token');
-        $this->encodingAesKey = config('wx_encodingAesKey');
         /*-------山洞公众号------*/
-        $this->config = [
-            'appid' => config('wx_appid'),
-            'app_secret' => config('wx_app_secret')
-        ];
         $this->mp_config = [
             'appid' => config('appid'),
             'app_secret' => config('app_secret'),
             'mch_id' => config('mch_id')
         ];
-
 
         if(!$this->needSession()) {
             if(request()->isPost()) {

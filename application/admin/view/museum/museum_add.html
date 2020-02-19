@@ -1,32 +1,9 @@
-<style>
-    .thumbnail{ width:100px;}
-</style>
 <article class="page-container">
     <form class="form form-horizontal" id="form-article-add">
         <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>属性名：</label>
+            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>博物馆名：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <input type="text" class="input-text" value="" placeholder="" id="attr_name" name="attr_name" maxlength="50">
-            </div>
-        </div>
-        <div class="row cl" id="picsize">
-            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span></label>
-            <div class="formControls col-xs-8 col-sm-9">
-                <span style="font-size: 16px">
-                    (建议尺寸: 44*44)
-                </span>
-            </div>
-        </div>
-        <div class="row cl" id="pic">
-            <label class="form-label col-xs-4 col-sm-2">
-                <span id="btn-star" class="btn btn-primary btn-uploadstar radius ml-10">属性图标</span>
-            </label>
-            <div class="formControls col-xs-8 col-sm-9">
-                <div class="uploader-thum-container">
-                    <div id="fileList" class="uploader-list">
-
-                    </div>
-                </div>
+                <input type="text" class="input-text" value="" placeholder="" id="museum_name" name="museum_name" maxlength="50">
             </div>
         </div>
         <div class="row cl">
@@ -35,13 +12,11 @@
                 <button onClick="layer_close();" class="btn btn-default radius" type="button">&nbsp;&nbsp;取消&nbsp;&nbsp;</button>
             </div>
         </div>
-        <input type="file" name="file" id="file" value="" style="display: none">
     </form>
 </article>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/jquery.validate.js"></script>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/validate-methods.js"></script>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/messages_zh.js"></script>
-<script type="text/javascript" src="/lib/checkfile.js"></script>
 <script type="text/javascript">
 
     $(function(){
@@ -50,7 +25,7 @@
         //表单验证
         $("#form-article-add").validate({
             rules:{
-                attr_name:{
+                museum_name:{
                     required:true,
                     maxlength:50
                 }
@@ -62,7 +37,7 @@
                     isclick = false;
                     $(form).ajaxSubmit({
                         type: 'post',
-                        url: "{:url('Card/attrAdd')}" ,
+                        url: "{:url('Museum/museumAdd')}" ,
                         success: function(data){
                             // console.log(data.data);isclick=true;return;
                             if(data.code == 1) {
@@ -82,24 +57,6 @@
                     });
                 }
 
-            }
-        });
-
-        $("#btn-star").click(function(){
-            $("#file").click();
-        });
-        $("#file").change(function(e){
-            if ($("#file").val()) {
-                if(checkfile('file',20) !== true) {
-                    $("#file").val('');
-                    $("#fileList").html('');
-                    return false
-                }
-                var img = e.target.files[0];
-                var src = window.URL.createObjectURL(img);
-                $("#fileList").html('<img class="thumbnail" src="'+src+'">');
-            }else {
-                $("#fileList").html('');
             }
         });
 
