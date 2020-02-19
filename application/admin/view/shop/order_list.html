@@ -4,7 +4,7 @@
     .order-font-b{color:#363636;font-weight: bold}
     .order-font-price{color:blue;font-weight: bold}
 </style>
-<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 订单管理 <span class="c-gray en">&gt;</span> 订单列表 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 商城管理 <span class="c-gray en">&gt;</span> 订单列表 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
 <div class="page-container">
     <section id="formAjax">
         <div class="text-c">
@@ -38,12 +38,12 @@
     <table class="table table-border table-bordered table-bg">
         <thead>
         <tr class="text-c">
-            <th width="30">#</th>
-            <th width="160">订单号</th>
-            <th width="200">微信端单号</th>
+            <th width="40">#</th>
+            <th width="220">订单号</th>
+            <th width="260">微信端单号</th>
             <th width="80">实际支付</th>
             <th>订单总价</th>
-            <th width="120">下单时间</th>
+            <th width="150">下单时间</th>
             <th width="50">订单状态</th>
             <th width="120">操作</th>
         </tr>
@@ -56,12 +56,11 @@
                 <td>{$li.pay_order_sn}</td>
                 <td>{$li.trans_id}</td>
                 <td><span class="order-font-price" onclick="mod_price(this,{$li.id},{$li.pay_price})">{$li.pay_price}</span>元</td>
-                <td><span class="order-font-price">{$li.total_price}</span>元
-                    <!--(运费:<span style="color: green">{$li.carriage}</span>元)-->
-                </td>
-                <td>{$li.pay_time|date="Y-m-d H:i:s"}</td>
+                <td><span class="order-font-price">{$li.total_price}</span>元 (运费:<span style="color: green">{$li.carriage}</span>元)</td>
+                <td>{$li.create_time|date="Y-m-d H:i:s"}</td>
                 <td class="td-status">
-                    <span id="pay-status">
+                    <span class="pay-status">
+                        {if !$li['refund_apply']}
                         {switch $li['status']}
                         {case 0}
                             <span class="label label-defaunt radius">待付款</span>
@@ -77,8 +76,9 @@
                         {/case}
                         {default /}
                         {/switch}
+                        {/if}
                     </span>
-                    <span id="refund-status">
+                    <span class="refund-status">
                         {switch $li['refund_apply']}
                         {case 1}
                             <span class="label label-danger radius">申请退款</span>
@@ -89,7 +89,6 @@
                         {default /}
                         {/switch}
                     </span>
-
                 </td>
                 <td class="td-manage" rowspan="3">
                     <span>
@@ -97,7 +96,7 @@
                         <i class="Hui-iconfont">&#xe6df;</i>
                         </a>
                     </span>
-                    <span id="send-btn">
+                    <span class="send-btn">
                         {if $li['status'] == 1 && $li['refund_apply'] == 0}
                         <a title="发货" href="javascript:;" onclick="order_send('订单发货','{:url("Shop/orderSend",array("id"=>$li["id"]))}','600','400')"">
                         <i class="Hui-iconfont">&#xe669;</i>
@@ -116,24 +115,29 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="6">
+                <td colspan="6" style="padding-bottom: 0;border-bottom: none">
+                    <div style="display: flex;flex-wrap: wrap">
                     {foreach $li['child'] as $vv}
-                    <div style="display: inline-flex">
-                        <div id="cover" class="goods_pics" style="background-image: url('{$qiniu_weburl}{$vv.cover}');"></div>
-                        <div style="margin: 0 10px;">
-                            <div><span class="order-font-b">{$vv.goods_name}</span></div>
+                    <div style="width: 400px;flex-grow: 1;display: flex;margin-bottom: 8px">
+                        <div id="cover" class="goods_pics" style="flex-shrink:0;background-image: url('/{$vv.cover}');"></div>
+                        <div style="margin: 0 10px;flex-grow: 1;width: 0">
+                            <div style="width: 100%">
+                                <span class="order-font-b" title="{$vv.goods_name}" style="display: block;white-space: nowrap;text-overflow: ellipsis;overflow: hidden">{$vv.goods_name}</span></div>
                             <div>规格: <span class="order-font">{$vv.attr}</span></div>
                             <div>数量: <span class="order-font">{$vv.num}</span></div>
                             <div>小计: <span class="order-font">{$vv.total_price}元</span></div>
                         </div>
                     </div>
                     {/foreach}
+                    </div>
                 </td>
             </tr>
             <tr>
-                <td colspan="6">
-                    <span style="margin-left: 15px;" onclick="mod_address(this,{$li.id},'{$li.address}')">收货地址: <b>{$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;(收货人: <b>{$li.receiver}</b> | 手机号: <b>{$li.tel}</b> )
-                    <!--<a data-title="物流信息"  onclick="layer_show('物流信息','{:url("Shop/traceInfo",array('id'=>$li['id']))}',600,500)" href="javascript:;" class="btn btn-link">查看物流</a>-->
+                <td colspan="6" style="border-top:none;">
+                    <span style="margin-left: 15px;" onclick="mod_address(this,{$li.id},'{$li.address}')">收货地址: <b>{$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;<span  onclick="mod_receiver(this,{$li.id},'{$li.receiver}')">(收货人: <b>{$li.receiver}</b></span> | <span onclick="mod_tel(this,{$li.id},'{$li.tel}')">手机号: <b>{$li.tel}</b></span> )
+                    {if $li['status'] == 2 || $li['status'] == 3}
+                    <a data-title="物流信息"  onclick="layer_show('物流信息','{:url("Shop/traceInfo",array('id'=>$li['id']))}',800,500)" href="javascript:;" class="btn btn-link">查看物流</a>
+                    {/if}
                 </td>
             </tr>
             {/foreach}
@@ -207,6 +211,76 @@
     /*发货*/
     function order_send(title,url,w,h){
         layer_show(title,url,w,h);
+    }
+    /*修改收货人*/
+    function mod_receiver(obj,id,old_receiver) {
+        layer.prompt({
+            formType: 3,
+            value: old_receiver,
+            title: '修改收货人地址(最多20个字)',
+            maxlength:20,
+        }, function(value, index, elem){
+            receiver = value;
+            layer.close(index);
+            if(click_lock) {
+                click_lock = false;
+                $.ajax({
+                    url:"{:url('Shop/modReceiver')}",
+                    type:'post',
+                    dataType:'json',
+                    data:{id:id,receiver:receiver},
+                    success:function(data) {
+                        console.log(data)
+                        if(data.code == 1) {
+                            $(obj).find("b").text(value);
+                            click_lock = true
+                        }else {
+                            layer.msg(data.data,{icon:2,time:1000})
+                        }
+                        click_lock = true
+                    },
+                    error:function(data) {
+                        layer.msg('请求失败!',{icon:5,time:1000})
+                        click_lock = true
+                    }
+                })
+            }
+        });
+    }
+    /*修改收货手机号*/
+    function mod_tel(obj,id,old_tel) {
+        layer.prompt({
+            formType: 3,
+            value: old_tel,
+            title: '修改收货手机号',
+            maxlength:15
+        }, function(value, index, elem){
+            tel = value;
+            layer.close(index);
+            if(click_lock) {
+                click_lock = false;
+                $.ajax({
+                    url:"{:url('Shop/modTel')}",
+                    type:'post',
+                    dataType:'json',
+                    data:{id:id,tel:tel},
+                    success:function(data) {
+                        console.log(data)
+                        if(data.code == 1) {
+                            $(obj).find("b").text(value);
+                            click_lock = true
+                        }else {
+                            layer.msg(data.data,{icon:2,time:1000})
+                        }
+                        click_lock = true
+                    },
+                    error:function(data) {
+                        layer.msg('请求失败!',{icon:5,time:1000})
+                        click_lock = true
+                    }
+                })
+            }
+        });
     }
     /*修改收货地址*/
     function mod_address(obj,id,old_address) {
@@ -292,10 +366,11 @@
                 dataType: 'json',
                 data:{id:id},
                 success: function(data){
-                    console.log(data);
+                    // console.log(data);return;
                     if(data.code == 1) {
-                        $(obj).parents("tr").find("#refund-status").html('<span class="label label-danger radius">已退款</span>');
-                        $(obj).parents("tr").find("#send-btn").remove();
+                        $(obj).parents("tr").find(".refund-status").html('<span class="label label-danger radius">已退款</span>');
+                        $(obj).parents("tr").find(".pay-status").remove();
+                        $(obj).parents("tr").find(".send-btn").remove();
                         $(obj).remove();
                         layer.msg('已退款!',{icon:1,time:1000});
                     }else {

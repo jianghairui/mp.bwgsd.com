@@ -10,8 +10,8 @@ use think\Db;
 class Admin extends Base {
 
     public function adminlist() {
-        $param['datemin'] = input('param.datemin');
-        $param['datemax'] = input('param.datemax');
+        $param['logmin'] = input('param.logmin');
+        $param['logmax'] = input('param.logmax');
         $param['search'] = input('param.search');
 
         $page['query'] = http_build_query(input('param.'));
@@ -21,12 +21,12 @@ class Admin extends Base {
 
         $where = [];
 
-        if($param['datemin']) {
-            $where[] = ['a.create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
+        if($param['logmin']) {
+            $where[] = ['a.create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['logmin'])))];
         }
 
-        if($param['datemax']) {
-            $where[] = ['a.create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
+        if($param['logmax']) {
+            $where[] = ['a.create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['logmax'])))];
         }
 
         if($param['search']) {
@@ -39,16 +39,15 @@ class Admin extends Base {
         $page['totalPage'] = ceil($count/$perpage);
         try {
             $list = Db::table('mp_admin')->alias('a')
-                ->join('mp_auth_group_access au','a.id=au.uid','left')
-                ->join('mp_auth_group g','au.group_id=g.id','left')
+                ->join('auth_group_access au','a.id=au.uid','left')
+                ->join('auth_group g','au.group_id=g.id','left')
                 ->where($where)
                 ->field('a.*,g.title')
                 ->order(['a.id'=>'ASC'])
                 ->limit(($curr_page - 1)*$perpage,$perpage)->select();
-        } catch (\Exception $e) {
+        } catch(\Exception $e) {
             die($e->getMessage());
         }
-
         $this->assign('list',$list);
         $this->assign('page',$page);
         return $this->fetch();
@@ -57,25 +56,31 @@ class Admin extends Base {
     public function adminadd() {
         try {
             $list = Db::table('mp_auth_group')->select();
-        } catch (\Exception $e) {
+            $device = Db::table('mp_device')->select();
+        } catch(\Exception $e) {
             die($e->getMessage());
         }
         $this->assign('list',$list);
+        $this->assign('device',$device);
         return $this->fetch();
     }
 
     public function adminadd_post() {
-        $data['username'] = input('post.username');
-        $data['realname'] = input('post.realname');
-        $data['email'] = input('post.email');
-        $data['password'] = input('post.password');
-        $data['tel'] = input('post.tel');
-        $data['create_time'] = time();
-        $group_id = input('post.group_id');
-        $data['password'] = md5($data['password'] . config('login_key'));
+        $data = input('post.');
+        $group_id = $data['group_id'];
+        $device = input('post.device',[]);
         try {
+            if(!empty($device) && is_array($device)) {
+                $count = Db::table('mp_device')->where('id','in',$device)->count();
+                if($count !== count($device)) {
+                    return ajax('非法参数',-1);
+                }
+                $data['device_id'] = implode(',',$device);
+            }else {
+                $data['device_id'] = '';
+            }
             if($group_id) {
-                $g = Db::table('mp_auth_group')->where('id','=',$group_id)->find();
+                $g = Db::table('mp_auth_group')->where('id',$group_id)->find();
                 if(!$g) {
                     return ajax('用户组不存在',-1);
                 }
@@ -85,14 +90,20 @@ class Admin extends Base {
                     return ajax('手机号不合法',-1);
                 }
             }
+            unset($data['group_id']);
+            unset($data['password2']);
+            unset($data['device']);
+            $data['password'] = md5($data['password'] . config('login_key'));
+
             $exist = Db::table('mp_admin')->where('username',$data['username'])->find();
             if($exist) {
                 return ajax('用户名已存在',-1);
             }
-
-            $uid = Db::table('mp_admin')->insertGetId($data);
+            $data['create_time'] = time();
+            Db::table('mp_admin')->insert($data);
             if($group_id) {
-                Db::table('mp_auth_group_access')->insert(['uid'=>$uid,'group_id'=>$group_id]);
+                $id = Db::getLastInsID();
+                Db::table('mp_auth_group_access')->insert(['uid'=>$id,'group_id'=>$group_id]);
             }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -109,24 +120,34 @@ class Admin extends Base {
             $info = Db::table('mp_admin')->where('id',$id)->find();
             $group_id = Db::table('mp_auth_group_access')->where('uid',$id)->value('group_id');
             $list = Db::table('mp_auth_group')->select();
+            $device_list = Db::table('mp_device')->select();
         } catch (\Exception $e) {
             die($e->getMessage());
         }
+        $my_device = explode(',',$info['device_id']);
         $this->assign('list',$list);
         $this->assign('info',$info);
         $this->assign('group_id',$group_id);
+        $this->assign('my_device',$my_device);
+        $this->assign('device_list',$device_list);
         return $this->fetch();
     }
 
     public function adminmod_post() {
-        $data['username'] = input('post.username');
-        $data['realname'] = input('post.realname');
-        $data['email'] = input('post.email');
-        $data['password'] = input('post.password');
-        $data['tel'] = input('post.tel');
-        $data['id'] = input('post.id');
-        $group_id = input('post.group_id');
+        $data = input('post.');
+        $group_id = $data['group_id'];
+
+        $device = input('post.device',[]);
         try {
+            if(!empty($device) && is_array($device)) {
+                $count = Db::table('mp_device')->where('id','in',$device)->count();
+                if($count !== count($device)) {
+                    return ajax('非法参数',-1);
+                }
+                $data['device_id'] = implode(',',$device);
+            }else {
+                $data['device_id'] = '';
+            }
             if($group_id) {
                 $g = Db::table('mp_auth_group')->where('id',$group_id)->find();
                 if(!$g) {
@@ -138,6 +159,9 @@ class Admin extends Base {
                     return ajax('手机号不合法',-1);
                 }
             }
+            unset($data['group_id']);
+            unset($data['password2']);
+            unset($data['device']);
             if($data['password']) {
                 $data['password'] = md5($data['password'] . config('login_key'));
             }else {
@@ -152,17 +176,16 @@ class Admin extends Base {
             if($exist) {
                 return ajax('用户名已存在',-1);
             }
-
-            Db::table('mp_admin')->where('id','=',$data['id'])->update($data);
-            $res =  Db::table('mp_auth_group_access')->where('uid','=',$data['id'])->find();
+            Db::table('mp_admin')->where('id',$data['id'])->update($data);
+            $res =  Db::table('mp_auth_group_access')->where('uid',$data['id'])->find();
             if($group_id) {
                 if($res) {
-                    Db::table('mp_auth_group_access')->where('uid','=',$data['id'])->update(['group_id'=>$group_id]);
+                    Db::table('mp_auth_group_access')->where('uid',$data['id'])->update(['group_id'=>$group_id]);
                 }else {
                     Db::table('mp_auth_group_access')->insert(['uid'=>$data['id'],'group_id'=>$group_id]);
                 }
             }else {
-                Db::table('mp_auth_group_access')->where('uid','=',$data['id'])->delete();
+                Db::table('mp_auth_group_access')->where('uid',$data['id'])->delete();
             }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -239,39 +262,30 @@ class Admin extends Base {
     }
 
     public function rulelist() {
-        try {
-            $list = Db::table('mp_auth_rule')->where('status','=',1)->select();
-            $newlist = $this->sortMerge($list);
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
+        $list = Db::table('mp_auth_rule')->where('status',1)->select();
+        $newlist = $this->sortMerge($list);
         $this->assign('list',$newlist);
         return $this->fetch();
     }
 
     public function ruleadd() {
         $pid = input('param.pid');
-        try {
-            if($pid) {
-                $map = [
-                    ['id','=',$pid],
-                    ['pid','=',0]
-                ];
-                $res = Db::table('mp_auth_rule')->where($map)->find();
-                if($res) {
-                    $pname = $res['name'];
-                }else {
-                    $pid = 0;
-                    $pname = '顶级节点';
-                }
+        if($pid) {
+            $map = [
+                ['id','=',$pid],
+                ['pid','=',0]
+            ];
+            $res = Db::table('mp_auth_rule')->where($map)->find();
+            if($res) {
+                $pname = $res['name'];
             }else {
                 $pid = 0;
                 $pname = '顶级节点';
             }
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
+        }else {
+            $pid = 0;
+            $pname = '顶级节点';
         }
-
         $this->assign('pid',$pid);
         $this->assign('pname',$pname);
         return $this->fetch();
@@ -281,13 +295,13 @@ class Admin extends Base {
         $val['name'] = input('post.name');
         $val['title'] = input('post.title');
         $val['pid'] = input('post.pid');
-        try {
-            if($val['pid']) {
-                $res = Db::table('mp_auth_rule')->where('id',$val['pid'])->find();
-                if(!$res) {
-                    return ajax('非法参数',-1);
-                }
+        if($val['pid']) {
+            $res = Db::table('mp_auth_rule')->where('id',$val['pid'])->find();
+            if(!$res) {
+                return ajax('非法参数',-1);
             }
+        }
+        try {
             Db::table('mp_auth_rule')->insert($val);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -317,11 +331,7 @@ class Admin extends Base {
     }
 
     public function grouplist() {
-        try {
-            $list = Db::table('mp_auth_group')->select();
-        } catch (\Exception $e) {
-            die($e->getMessage());
-        }
+        $list = Db::table('mp_auth_group')->select();
         $this->assign('list',$list);
         return $this->fetch();
     }
@@ -329,31 +339,31 @@ class Admin extends Base {
     public function groupadd() {
         try {
             $list = Db::table('mp_auth_rule')->where('status',1)->select();
+            $newlist = $this->sortMerge($list);
         } catch (\Exception $e) {
             die($e->getMessage());
         }
-        $newlist = $this->sortMerge($list);
         $this->assign('list',$newlist);
         return $this->fetch();
     }
 
     public function groupadd_post() {
         $data['title'] = input('post.title');
-        checkInput($data);
+        checkPost($data);
         $data['desc'] = input('post.desc');
         $check = input('post.check');
+        $exist = Db::table('mp_auth_group')->where('title','=',$data['title'])->find();
+        if($exist) {
+            return ajax('角色已存在',-1);
+        }
+        if($check && is_array($check)) {
+            $count = Db::table('mp_auth_rule')->where('id','in',$check)->count();
+            if($count !== count($check)) {
+                return ajax('非法参数',-1);
+            }
+            $data['rules'] = implode(',',$check);
+        }
         try {
-            $exist = Db::table('mp_auth_group')->where('title','=',$data['title'])->find();
-            if($exist) {
-                return ajax('角色已存在',-1);
-            }
-            if($check && is_array($check)) {
-                $count = Db::table('mp_auth_rule')->where('id','in',$check)->count();
-                if($count !== count($check)) {
-                    return ajax('非法参数',-1);
-                }
-                $data['rules'] = implode(',',$check);
-            }
             Db::table('mp_auth_group')->insert($data);
         }catch (\Exception $e) {
             return ajax($e->getMessage());
@@ -363,17 +373,13 @@ class Admin extends Base {
 
     public function groupmod() {
         $gid = input('param.gid');
-        try {
-            $exist = Db::table('mp_auth_group')->where('id','=',$gid)->find();
-            if(!$exist) {
-                $this->error('非法操作');
-            }
-            $list = Db::table('mp_auth_rule')->where('status',1)->select();
-            $rules = Db::table('mp_auth_group')->where('id','=',$gid)->value('rules');
-            $access = explode(',',$rules);
-        } catch (\Exception $e) {
-            die($e->getMessage());
+        $exist = Db::table('mp_auth_group')->where('id','=',$gid)->find();
+        if(!$exist) {
+            $this->error('非法操作');
         }
+        $list = Db::table('mp_auth_rule')->where('status',1)->select();
+        $rules = Db::table('mp_auth_group')->where('id','=',$gid)->value('rules');
+        $access = explode(',',$rules);
         $newlist = $this->sortMerge($list,$access);
         $this->assign('list',$newlist);
         $this->assign('info',$exist);
@@ -383,7 +389,7 @@ class Admin extends Base {
     public function groupmod_post() {
         $data['title'] = input('post.title');
         $data['id'] = input('post.group_id');
-        checkInput($data);
+        checkPost($data);
 
         $data['desc'] = input('post.desc');
         $check = input('post.check');
@@ -392,20 +398,20 @@ class Admin extends Base {
             ['id','<>',$data['id']]
         ];
 
+        $exist = Db::table('mp_auth_group')->where($map)->find();
+        if($exist) {
+            return ajax('角色已存在',-1);
+        }
+        if($check && is_array($check)) {
+            $count = Db::table('mp_auth_rule')->where('id','in',$check)->count();
+            if($count !== count($check)) {
+                return ajax('非法参数',-1);
+            }
+            $data['rules'] = implode(',',$check);
+        }else {
+            $data['rules'] = '';
+        }
         try {
-            $exist = Db::table('mp_auth_group')->where($map)->find();
-            if($exist) {
-                return ajax('角色已存在',-1);
-            }
-            if($check && is_array($check)) {
-                $count = Db::table('mp_auth_rule')->where('id','in',$check)->count();
-                if($count !== count($check)) {
-                    return ajax('非法参数',-1);
-                }
-                $data['rules'] = implode(',',$check);
-            }else {
-                $data['rules'] = '';
-            }
             Db::table('mp_auth_group')->where('id','=',$data['id'])->update($data);
         }catch (\Exception $e) {
             return ajax($e->getMessage());
