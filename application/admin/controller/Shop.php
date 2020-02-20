@@ -13,32 +13,41 @@ class Shop extends Base {
 //商品列表
     public function goodsList() {
         $param['search'] = input('param.search');
+        $param['cate_id'] = input('param.cate_id');
         $page['query'] = http_build_query(input('param.'));
 
         $curr_page = input('param.page',1);
         $perpage = input('param.perpage',10);
         $where = [];
 
+        if($param['cate_id']) {
+            $where[] = ['g.cate_id','=',$param['cate_id']];
+        }
         if($param['search']) {
-            $where[] = ['name','like',"%{$param['search']}%"];
+            $where[] = ['g.name','like',"%{$param['search']}%"];
         }
 
         try {
-            $count = Db::table('mp_goods')->where($where)->count();
+            $count = Db::table('mp_goods')->alias('g')->where($where)->count();
 
             $page['count'] = $count;
             $page['curr'] = $curr_page;
             $page['totalPage'] = ceil($count/$perpage);
-            $list = Db::table('mp_goods')
+            $list = Db::table('mp_goods')->alias('g')
+                ->join('mp_goods_cate c','g.cate_id=c.id','left')
                 ->where($where)
                 ->limit(($curr_page - 1)*$perpage,$perpage)
-                ->order(['id'=>'DESC'])
+                ->order(['g.id'=>'DESC'])
+                ->field('g.*,c.cate_name')
                 ->select();
+
+            $cate_list = Db::table('mp_goods_cate')->select();
         }catch (\Exception $e) {
             die('SQL错误: ' . $e->getMessage());
         }
 
         $this->assign('list',$list);
+        $this->assign('cate_list',$cate_list);
         $this->assign('param',$param);
         $this->assign('page',$page);
         return $this->fetch();

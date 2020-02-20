@@ -5,6 +5,14 @@
 <div class="page-container">
     <section id="formAjax">
         <div class="text-c">
+            <span class="select-box inline" style="width: 120px;">
+                <select name="cate_id" id="cate_id" class="select">
+                    <option value="">全部</option>
+                    {foreach $cate_list as $li}
+                    <option value="{$li.id}" {if $param['cate_id'] === $li['id']}selected{/if}>{$li.cate_name}</option>
+                    {/foreach}
+                </select>
+            </span>
             <input type="text" name="search" value="{$Think.get.search}" id="search" placeholder=" 商品名" style="width:250px;height: 28px;line-height: 28px;border-radius: 4px" class="input-text">
             <button name="" id="search-btn" class="btn btn-success" style="height: 28px;" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找商品</button>
         </div>
@@ -22,6 +30,7 @@
             <th width="50">排序</th>
             <th width="80">商品图片</th>
             <th>商品名称</th>
+            <th width="80">商品分类</th>
             <th width="80">商品价格</th>
             <th width="80">库存</th>
             <th width="80">销量</th>
@@ -41,6 +50,7 @@
                     <div style="width: 80px;height: 80px;background-image: url('/{$image}');background-position: center;background-repeat: no-repeat;background-size: 100%"></div>
                 </td>
                 <td>{$li.name}</td>
+                <td>{$li.cate_name}</td>
                 <td>{$li.price}</td>
                 <td>{$li.stock}</td>
                 <td>{$li.sales}</td>
@@ -71,7 +81,7 @@
         </form>
 
         <tr>
-            <td colspan="12" id="page" class="text-r"></td>
+            <td colspan="14" id="page" class="text-r"></td>
         </tr>
         </tbody>
     </table>
@@ -102,8 +112,14 @@
 
     $("#search-btn").click(function () {
         var search = $("#formAjax").find("#search").val();
+        var cate_id = $("#formAjax").find("#cate_id").val();
+
+        var str = '';
         if(search.length != '') {
             str += '&search=' + search;
+        }
+        if(cate_id.length != '') {
+            str += '&cate_id=' + cate_id;
         }
         window.location.href = '{:url("Shop/goodsList")}' + '?' + str;
     });
