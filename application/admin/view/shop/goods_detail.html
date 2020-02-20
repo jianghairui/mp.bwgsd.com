@@ -19,12 +19,12 @@
             </div>
         </div>
         <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-2">商品版本：</label>
+            <label class="form-label col-xs-4 col-sm-2">所属博物馆：</label>
             <div class="formControls col-xs-4 col-sm-4">
                 <span class="select-box">
-                    <select class="select" name="version_id" id="version_id">
-                        {foreach $version_list as $li}
-                        <option value="{$li.id}" {if $info['version_id'] == $li['id']}selected{/if}>{$li.version_name}</option>
+                    <select class="select" name="museum_id" id="museum_id">
+                        {foreach $museum_list as $li}
+                        <option value="{$li.id}" {if $info['museum_id'] == $li['id']}selected{/if}>{$li.museum_name}</option>
                         {/foreach}
                     </select>
 				</span>

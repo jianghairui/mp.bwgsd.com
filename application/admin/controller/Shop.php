@@ -51,12 +51,12 @@ class Shop extends Base {
                 ['del','=',0]
             ];
             $cate_list = Db::table('mp_goods_cate')->where($where)->select();
-            $version_list = Db::table('mp_goods_version')->select();
+            $museum_list = Db::table('mp_museum')->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
         $this->assign('cate_list',$cate_list);
-        $this->assign('version_list',$version_list);
+        $this->assign('museum_list',$museum_list);
         return $this->fetch();
     }
 //商品详情
@@ -77,12 +77,12 @@ class Shop extends Base {
                 ['del','=',0]
             ];
             $cate_list = Db::table('mp_goods_cate')->where($where)->select();
-            $version_list = Db::table('mp_goods_version')->select();
+            $museum_list = Db::table('mp_museum')->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
         $this->assign('cate_list',$cate_list);
-        $this->assign('version_list',$version_list);
+        $this->assign('museum_list',$museum_list);
         $this->assign('info',$info);
         $this->assign('attr_list',$attr_list);
         return $this->fetch();
@@ -90,6 +90,7 @@ class Shop extends Base {
 //添加商品POST
     public function goodsAddPost() {
         $val['cate_id'] = input('post.cate_id');
+        $val['museum_id'] = input('post.museum_id');
         $val['name'] = input('post.name');
         $val['origin_price'] = input('post.origin_price');
         $val['price'] = input('post.price');
@@ -183,6 +184,7 @@ class Shop extends Base {
 //修改商品POST
     public function goodsMod() {
         $val['cate_id'] = input('post.cate_id');
+        $val['museum_id'] = input('post.museum_id');
         $val['name'] = input('post.name');
         $val['origin_price'] = input('post.origin_price');
         $val['price'] = input('post.price');
@@ -393,16 +395,16 @@ class Shop extends Base {
         $val['cate_name'] = input('post.cate_name');
         checkInput($val);
         try {
-//            if(isset($_FILES['file'])) {
-//                $info = upload('file',$this->upload_base_path . 'goodscate/');
-//                if($info['error'] === 0) {
-//                    $val['icon'] = $info['data'];
-//                }else {
-//                    return ajax($info['msg'],-1);
-//                }
-//            }else {
-//                return ajax('请上传ICON',-1);
-//            }
+            if(isset($_FILES['file'])) {
+                $info = upload('file',$this->upload_base_path . 'goodscate/');
+                if($info['error'] === 0) {
+                    $val['icon'] = $info['data'];
+                }else {
+                    return ajax($info['msg'],-1);
+                }
+            }else {
+                return ajax('请上传ICON',-1);
+            }
             Db::table('mp_goods_cate')->insert($val);
         }catch (\Exception $e) {
             if(isset($val['icon'])) {
@@ -440,14 +442,14 @@ class Shop extends Base {
             if(!$cate_exist) {
                 return ajax('非法参数',-1);
             }
-//            if(isset($_FILES['file'])) {
-//                $info = upload('file',$this->upload_base_path . 'goodscate/');
-//                if($info['error'] === 0) {
-//                    $val['icon'] = $info['data'];
-//                }else {
-//                    return ajax($info['msg'],-1);
-//                }
-//            }
+            if(isset($_FILES['file'])) {
+                $info = upload('file',$this->upload_base_path . 'goodscate/');
+                if($info['error'] === 0) {
+                    $val['icon'] = $info['data'];
+                }else {
+                    return ajax($info['msg'],-1);
+                }
+            }
             Db::table('mp_goods_cate')->where($whereCate)->update($val);
         }catch (\Exception $e) {
             if(isset($val['icon'])) {
@@ -887,110 +889,6 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         return ajax();
     }
 
-
-
-
-    /*------ 商品版本 ------*/
-
-    //版本列表
-    public function versionList() {
-        $curr_page = input('param.page',1);
-        $perpage = input('param.perpage',10);
-        $page['query'] = http_build_query(input('param.'));
-        $whereAttr = [];
-        try {
-            $count = Db::table('mp_goods_version')->where($whereAttr)->count();
-            $page['count'] = $count;
-            $page['curr'] = $curr_page;
-            $page['totalPage'] = ceil($count/$perpage);
-            $list = Db::table('mp_goods_version')->where($whereAttr)->limit(($curr_page-1)*$perpage,$perpage)->select();
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        $this->assign('list',$list);
-        $this->assign('page',$page);
-        return $this->fetch();
-    }
-    //添加版本
-    public function versionAdd() {
-        if(request()->isPost()) {
-            $val['version_name'] = input('post.version_name');
-            checkInput($val);
-            try {
-                Db::table('mp_goods_version')->insert($val);
-            } catch (\Exception $e) {
-                return ajax($e->getMessage(), -1);
-            }
-            return ajax();
-        }
-        return $this->fetch();
-    }
-    //版本详情
-    public function versionDetail() {
-        $val['id'] = input('param.id');
-        checkInput($val);
-        try {
-            $whereAttr = [
-                ['id','=',$val['id']]
-            ];
-            $version_exist = Db::table('mp_goods_version')->where($whereAttr)->find();
-            if(!$version_exist) {
-                die('非法参数');
-            }
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        $this->assign('info',$version_exist);
-        return $this->fetch();
-    }
-    //编辑版本
-    public function versionMod() {
-        if(request()->isPost()) {
-            $val['version_name'] = input('post.version_name');
-            $val['id'] = input('post.id');
-            checkInput($val);
-            try {
-                $whereAttr = [
-                    ['id','=',$val['id']]
-                ];
-                $version_exist = Db::table('mp_goods_version')->where($whereAttr)->find();
-                if(!$version_exist) {
-                    return ajax('非法参数',-1);
-                }
-                Db::table('mp_goods_version')->where($whereAttr)->update($val);
-            } catch (\Exception $e) {
-                return ajax($e->getMessage(), -1);
-            }
-            return ajax();
-        }
-    }
-    //删除版本
-    public function versionDel() {
-        if(request()->isPost()) {
-            $val['id'] = input('post.id');
-            checkInput($val);
-            try {
-                $whereVersion = [
-                    ['id','=',$val['id']]
-                ];
-                $version_exist = Db::table('mp_goods_version')->where($whereVersion)->find();
-                if(!$version_exist) {
-                    return ajax('非法参数',-1);
-                }
-                $whereGoods = [
-                    ['version_id','=',$val['id']]
-                ];
-                $goods_exist = Db::table('mp_goods')->where($whereGoods)->find();
-                if($goods_exist) {
-                    return ajax('此版本下有商品,无法删除',-1);
-                }
-                Db::table('mp_goods_version')->where($whereVersion)->delete();
-            } catch (\Exception $e) {
-                return ajax($e->getMessage(), -1);
-            }
-            return ajax();
-        }
-    }
 
     public function commentList() {
         $param['search'] = input('param.search');

@@ -39,7 +39,7 @@ class Base extends Controller {
             'response_type' => 'array',
             'log' => [
                 'level' => 'debug',
-                'file' => APP_PATH . '/wechat.log',
+                'file' => APP_PATH . '/Easywechat.log',
             ],
         ];
         $this->checkSession();

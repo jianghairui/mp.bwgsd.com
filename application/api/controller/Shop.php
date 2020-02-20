@@ -10,99 +10,6 @@ use think\Db;
 
 class Shop extends Base {
 
-    //商品分类
-    public function cateList() {
-        try {
-            $map = [
-                ['del','=',0],
-                ['status','=',1],
-                ['pid','=',0]
-            ];
-            $list = Db::table('mp_goods_cate')->where($map)->select();
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
-        }
-        return ajax($list);
-    }
-    //商品版本
-    public function versionList() {
-        try {
-            $map = [];
-            $list = Db::table('mp_goods_version')->where($map)->select();
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
-        }
-        return ajax($list);
-    }
-    //商品列表
-    public function goodsList() {
-        $cate_id = input('post.cate_id',0);
-        $version_id = input('post.version_id',0);
-        $curr_page = input('post.page',1);
-        $perpage = input('post.perpage',10);
-        $search = input('post.search','');
-
-        $where = [
-            ['g.status','=',1],
-            ['g.del','=',0]
-        ];
-        $order = ['g.id'=>'DESC'];
-        if($cate_id) {
-            $where[] = ['g.cate_id','=',$cate_id];
-        }
-        if($version_id) {
-            $where[] = ['g.version_id','=',$version_id];
-        }
-        if($search) {
-            $where[] = ['g.name','like',"%{$search}%"];
-        }
-        try {
-            $list = Db::table('mp_goods')->alias('g')
-                ->join('mp_goods_cate c','g.cate_id=c.id','left')
-                ->where($where)
-                ->field("g.id,g.name,g.origin_price,g.price,g.sales,g.desc,g.pics,c.cate_name")
-                ->order($order)
-                ->limit(($curr_page-1)*$perpage,$perpage)->select();
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        foreach ($list as &$v) {
-            $v['cover'] = unserialize($v['pics'])[0];
-            unset($v['pics']);
-        }
-        return ajax($list);
-    }
-    //商品详情
-    public function goodsDetail() {
-        $val['id'] = input('post.id');
-        checkPost($val);
-        try {
-            $where = [
-                ['id','=',$val['id']]
-            ];
-            $info = Db::table('mp_goods')
-                ->where($where)
-                ->field("id,name,detail,origin_price,price,pics,carriage,stock,sales,use_attr,attr,hot,limit")
-                ->find();
-            if(!$info) {
-                return ajax($val['id'],-4);
-            }
-            if($info['use_attr']) {
-                $whereAttr = [
-                    ['goods_id','=',$val['id']],
-                    ['del','=',0]
-                ];
-                $attr_list = Db::table('mp_goods_attr')->where($whereAttr)->select();
-            }else {
-                $attr_list = [];
-            }
-            $info['attr_list'] = $attr_list;
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        $info['pics'] = unserialize($info['pics']);
-        return ajax($info);
-    }
     //商品评论
     public function goodsCommentList() {
         $val['goods_id'] = input('post.goods_id');
@@ -136,7 +43,6 @@ class Shop extends Base {
         }
         return ajax($list);
     }
-
     //购物车列表
     public function cartList() {
         try {
@@ -172,7 +78,6 @@ class Shop extends Base {
 
         return ajax($list);
     }
-
     //加入购物车
     public function cartAdd() {
         $val['goods_id'] = input('post.goods_id');
@@ -257,7 +162,6 @@ class Shop extends Base {
         }
         return ajax();
     }
-
     //购物车+++
     public function cartInc() {
         $val['cart_id'] = input('post.cart_id');
@@ -455,7 +359,6 @@ class Shop extends Base {
         }
         return ajax($pay_order_sn);
     }
-
     //购物车去支付
     public function cartToPurchase() {
         $cart_ids = input('post.cart_ids',[]);
