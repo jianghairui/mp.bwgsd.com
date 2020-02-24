@@ -118,7 +118,7 @@ class Api extends Base
                 ->join('mp_museum m','g.museum_id=m.id','left')
                 ->join('mp_goods_cate c','g.cate_id=c.id','left')
                 ->where($where)
-                ->field("g.id,g.name,g.detail,g.origin_price,g.price,g.pics,g.carriage,g.stock,g.sales,g.use_attr,g.attr,m.museum_name,c.cate_name")
+                ->field("g.id,g.name,g.detail,g.origin_price,g.price,g.time_limit_price,g.pics,g.carriage,g.stock,g.sales,g.use_attr,g.attr,m.museum_name,c.cate_name")
                 ->find();
             if(!$info) {
                 return ajax($val['goods_id'],-4);

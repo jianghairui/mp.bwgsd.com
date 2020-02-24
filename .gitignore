@@ -2,5 +2,6 @@
 config/database.php
 public/cert
 public/ueditor
+public/demo
 *.log
 .DS_Store
