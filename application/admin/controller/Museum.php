@@ -35,8 +35,21 @@ class Museum extends Base {
             $val['museum_name'] = input('post.museum_name');
             checkInput($val);
             try {
+                if(isset($_FILES['file'])) {
+                    $info = upload('file',$this->upload_base_path . 'museum/');
+                    if($info['error'] === 0) {
+                        $val['cover'] = $info['data'];
+                    }else {
+                        return ajax($info['msg'],-1);
+                    }
+                }else {
+                    return ajax('请上传图片',-1);
+                }
                 Db::table('mp_museum')->insert($val);
             } catch (\Exception $e) {
+                if(isset($val['cover'])) {
+                    @unlink($val['cover']);
+                }
                 return ajax($e->getMessage(), -1);
             }
             return ajax();
@@ -75,9 +88,23 @@ class Museum extends Base {
                 if(!$museum_exist) {
                     return ajax('非法参数',-1);
                 }
+                if(isset($_FILES['file'])) {
+                    $info = upload('file',$this->upload_base_path . 'museum/');
+                    if($info['error'] === 0) {
+                        $val['cover'] = $info['data'];
+                    }else {
+                        return ajax($info['msg'],-1);
+                    }
+                }
                 Db::table('mp_museum')->where($whereAttr)->update($val);
             } catch (\Exception $e) {
+                if(isset($val['cover'])) {
+                    @unlink($val['cover']);
+                }
                 return ajax($e->getMessage(), -1);
+            }
+            if(isset($val['cover'])) {
+                @unlink($museum_exist['cover']);
             }
             return ajax();
         }

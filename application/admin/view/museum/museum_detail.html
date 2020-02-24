@@ -6,6 +6,28 @@
                 <input type="text" class="input-text" value="{$info.museum_name}" placeholder="" id="museum_name" name="museum_name" maxlength="50">
             </div>
         </div>
+        <div class="row cl" id="picsize">
+            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span></label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span style="font-size: 16px">
+                    (建议尺寸: 400*240)
+                </span>
+            </div>
+        </div>
+        <div class="row cl" id="pic">
+            <label class="form-label col-xs-4 col-sm-2">
+                <span id="btn-star" class="btn btn-primary btn-uploadstar radius ml-10">选择图片</span>
+            </label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <div class="uploader-thum-container">
+                    <div id="fileList" class="uploader-list">
+                        {if $info['cover']}
+                        <img class="thumbnail" src="/{$info.cover}">
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row cl">
             <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
                 <button class="btn btn-primary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
@@ -13,11 +35,14 @@
             </div>
         </div>
         <input type="hidden" name="id" value="{$info.id}">
+        <input type="file" name="file" id="file" style="display: none">
     </form>
 </article>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/jquery.validate.js"></script>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/validate-methods.js"></script>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/messages_zh.js"></script>
+<script type="text/javascript" src="/lib/checkfile.js"></script>
+
 <script type="text/javascript">
 
     $(function(){
@@ -59,6 +84,27 @@
                 }
 
             }
+        });
+
+
+        $("#btn-star").click(function(){
+            $("#file").click();
+        });
+
+        $("#file").change(function(e){
+            var img = e.target.files[0];
+            if (typeof(img) == "undefined") {
+                $("#file").val('');
+                var src = '';
+            }else {
+                if(checkfile('file') !== true) {
+                    $("#file").val('');
+                    $("#fileList").html('');
+                    return false
+                }
+                var src = window.URL.createObjectURL(img);
+            }
+            $("#fileList").html('<img class="thumbnail" src="'+src+'">');
         });
 
 
