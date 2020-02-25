@@ -79,10 +79,10 @@ class Api extends Base
         $order = ['g.id'=>'DESC'];
 
         if($cate_id) {
-            $where[] = ['g.cate_id','=',$cate_id];
+            $whereGoods[] = ['g.cate_id','=',$cate_id];
         }
         if($museum_id) {
-            $where[] = ['g.museum_id','=',$museum_id];
+            $whereGoods[] = ['g.museum_id','=',$museum_id];
         }
         if($search) {
             $whereGoods[] = ['g.name','LIKE',"%{$search}%"];
