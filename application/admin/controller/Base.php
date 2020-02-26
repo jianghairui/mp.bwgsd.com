@@ -9,6 +9,10 @@ namespace app\admin\controller;
 use think\Controller;
 use my\Auth;
 use think\exception\HttpResponseException;
+
+require_once ROOT_PATH . '/extend/qiniu/autoload.php';
+use Qiniu\Config;
+use Qiniu\Storage\BucketManager;
 class Base extends Controller {
 
     protected $cmd;
@@ -114,6 +118,75 @@ class Base extends Controller {
     protected function excep($cmd,$str) {
         $file= LOG_PATH . '/exception.log';
         create_dir($file);
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+
+
+
+
+
+    //七牛云判断文件是否存在
+    public function qiniuFileExist($key) {
+        $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
+        $config = new Config();
+        $bucketManager = new BucketManager($auth, $config);
+        list($fileInfo, $err) = $bucketManager->stat(config('qiniu_bucket'), $key);
+        if ($err) {
+            return [
+                'code' => 1,
+                'msg' => 'qiniu_code:' . $err->code() .' , '. $err->message()
+            ];
+        }
+        return true;
+    }
+
+    //七牛云移动文件
+    protected function moveFile($srcKey,$destpath='upload/public/') {
+        $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
+        $config = new Config();
+        $bucketManager = new BucketManager($auth, $config);
+
+        $srcBucket = config('qiniu_bucket');
+        $destBucket = config('qiniu_bucket');
+        $arr = explode('/',$srcKey);
+        $destKey = $destpath . end($arr);
+        //如果一样不需要挪动
+        if($srcKey == $destKey) {
+            return [
+                'code' => 0,
+                'path' => $destKey
+            ];
+        }
+        $err = $bucketManager->move($srcBucket, $srcKey, $destBucket, $destKey, true);
+        if($err) {
+            return [
+                'code' => 1,
+                'msg' => 'qiniu_code:' . $err->code() .' , '. $err->message()
+            ];
+        }else {
+            return [
+                'code' => 0,
+                'path' => $destKey
+            ];
+        }
+
+    }
+
+    //七牛云删除文件
+    protected function rs_delete($key) {
+        $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
+        $config = new Config();
+        $bucketManager = new BucketManager($auth, $config);
+        $bucketManager->delete(config('qiniu_bucket'), $key);
+    }
+
+    public function qiniuLog($cmd,$str) {
+        $file= ROOT_PATH . '/log/qiniu_error.log';
         $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
         if(false !== fopen($file,'a+')){
             file_put_contents($file,$text,FILE_APPEND);

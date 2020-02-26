@@ -66,7 +66,9 @@ class Api extends Base
 
         $curr_page = $curr_page ? $curr_page : 1;
         $perpage = $perpage ? $perpage : 10;
-        $whereGoods = [];
+        $whereGoods = [
+            ['g.status','=',1]
+        ];
         switch ($type) {
             case 1://限时价
                 $whereGoods[] = ['g.time_limit_price','=',1];
@@ -138,6 +140,18 @@ class Api extends Base
         }
         $info['pics'] = unserialize($info['pics']);
         return ajax($info);
+    }
+
+    public function videoList() {
+        try {
+            $whereGoods = [
+                ['use_video','=',1]
+            ];
+            $list = Db::table('mp_goods')->where($whereGoods)->field('id,name,price,video_url')->select();
+        } catch(\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($list);
     }
 
 

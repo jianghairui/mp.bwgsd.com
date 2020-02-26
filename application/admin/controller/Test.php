@@ -7,12 +7,13 @@
  */
 namespace app\admin\controller;
 
-class Test extends Base {
+use think\Controller;
+
+class Test extends Controller {
 
 
     public function index() {
-        nl2br('');
-        htmlspecialchars('');
+        echo config('qiniu_weburl');;
     }
 
 

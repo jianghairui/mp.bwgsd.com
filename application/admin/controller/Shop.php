@@ -94,6 +94,8 @@ class Shop extends Base {
         $this->assign('museum_list',$museum_list);
         $this->assign('info',$info);
         $this->assign('attr_list',$attr_list);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+
         return $this->fetch();
     }
 //添加商品POST
@@ -118,6 +120,9 @@ class Shop extends Base {
         $val['detail'] = input('post.detail');
         $val['use_attr'] = input('post.use_attr',0);
         $image = input('post.pic_url',[]);
+
+        $use_video = input('post.use_video',0);
+        $video_url = input('post.video_url');
 
         try {
             if($val['use_attr']) {
@@ -148,6 +153,20 @@ class Shop extends Base {
                         return ajax('规格库存必须为数字',-1);
                     }
                     $val['stock'] += $v;
+                }
+            }
+
+            if($use_video) {
+                $val['use_video'] = 1;
+                $qiniu_exist = $this->qiniuFileExist($video_url);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'],-1);
+                }
+                $qiniu_move = $this->moveFile($video_url,'bwgsd/goodsvideo/');
+                if($qiniu_move['code'] == 0) {
+                    $val['video_url'] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],-2);
                 }
             }
 
@@ -183,6 +202,7 @@ class Shop extends Base {
                 Db::table('mp_goods_attr')->insertAll($attr_insert);
             }
         }catch (\Exception $e) {
+            $this->rs_delete($val['video_url']);
             foreach ($image_array as $v) {
                 @unlink($v);
             }
@@ -213,6 +233,8 @@ class Shop extends Base {
         $val['create_time'] = time();
         $val['use_attr'] = input('post.use_attr',0);
         $image = input('post.pic_url',[]);
+        $use_video = input('post.use_video',0);
+        $video_url = input('post.video_url');
         try {
             if($val['use_attr']) {
                 $val['stock'] = 0;
@@ -245,11 +267,28 @@ class Shop extends Base {
                 ['id','=',$val['id']],
                 ['del','=',0]
             ];
-            $exist = Db::table('mp_goods')->where($map)->find();
-            if(!$exist) {
+            $goods_exist = Db::table('mp_goods')->where($map)->find();
+            if(!$goods_exist) {
                 return ajax('非法参数',-1);
             }
-            $old_pics = unserialize($exist['pics']);
+            $old_pics = unserialize($goods_exist['pics']);
+
+
+            if($use_video) {
+                $val['use_video'] = 1;
+                $qiniu_exist = $this->qiniuFileExist($video_url);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'],-1);
+                }
+                $qiniu_move = $this->moveFile($video_url,'bwgsd/goodsvideo/');
+                if($qiniu_move['code'] == 0) {
+                    $val['video_url'] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],-2);
+                }
+            }else {
+                $val['use_video'] = 0;
+            }
 
             $limit = 6;
             $image_array = [];
@@ -300,12 +339,22 @@ class Shop extends Base {
                 }
             }
         }catch (\Exception $e) {
+            if($use_video) {
+                if($val['video_url'] != $goods_exist['video_url']) {
+                    $this->rs_delete($val['video_url']);
+                }
+            }
             foreach ($image_array as $v) {
                 if(!in_array($v,$old_pics)) {
                     @unlink($v);
                 }
             }
             return ajax($e->getMessage(),-1);
+        }
+        if($use_video) {
+            if($val['video_url'] != $goods_exist['video_url']) {
+                $this->rs_delete($goods_exist['video_url']);
+            }
         }
         foreach ($old_pics as $v) {
             if(!in_array($v,$image_array)) {
