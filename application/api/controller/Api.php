@@ -8,6 +8,7 @@
 
 namespace app\api\controller;
 use my\Sendsms;
+use EasyWeChat\Factory;
 use think\Db;
 use think\Exception;
 
@@ -188,6 +189,26 @@ class Api extends Base
             return ajax($e->getMessage(), -1);
         }
         return ajax($val);
+    }
+
+
+    public function getQrcode()
+    {
+        $uid = $this->myinfo['id'];
+//        $uid = 1999;
+        $app = Factory::miniProgram($this->mp_config);
+        $response = $app->app_code->getUnlimit($uid, [
+            'page' => 'pages/auth/auth',
+            'width' => '300'
+        ]);
+        $png = $uid . '.png';
+        $save_path = 'upload/appcode/';
+        if ($response instanceof \EasyWeChat\Kernel\Http\StreamResponse) {
+            $filename = $response->saveAs($save_path, $png);
+        } else {
+            return ajax($response, -1);
+        }
+        return ajax($save_path . $png);
     }
 
 
