@@ -6,20 +6,19 @@
  * Time: 11:11
  */
 
-namespace app\api\controller;
-use my\Sendsms;
-use EasyWeChat\Factory;
+namespace app\pc\controller;
+use think\Controller;
 use think\Db;
 use think\Exception;
 
-class Api extends Base
+class Api extends Controller
 {
 
     //获取轮播图列表
     public function slideList() {
         $where = [
             ['status', '=', 1],
-            ['type', '=', 1]
+            ['type', '=', 2]
         ];
         try {
             $list = Db::table('mp_slideshow')->where($where)
@@ -45,25 +44,14 @@ class Api extends Base
         }
         return ajax($list);
     }
-    //博物馆列表
-    public function museumList() {
-        try {
-            $whereMuseum = [];
-            $list = Db::table('mp_museum')->where($whereMuseum)->select();
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
-        }
-        return ajax($list);
-    }
 
     //商品列表
     public function goodsList() {
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
-        $type = input('post.type',0);
-        $museum_id = input('post.museum_id',0);
         $cate_id = input('post.cate_id',0);
         $search = input('post.search','');
+        $type = input('post.type',0);
 
 
         $curr_page = $curr_page ? $curr_page : 1;
@@ -84,9 +72,6 @@ class Api extends Base
 
         if($cate_id) {
             $whereGoods[] = ['g.cate_id','=',$cate_id];
-        }
-        if($museum_id) {
-            $whereGoods[] = ['g.museum_id','=',$museum_id];
         }
         if($search) {
             $whereGoods[] = ['g.name','LIKE',"%{$search}%"];
@@ -173,47 +158,6 @@ class Api extends Base
         }
         return ajax($info);
     }
-
-
-    //收集formid
-    public function collectFormid() {
-        $val['formid'] = input('post.formid');
-        checkPost($val);
-        if($val['formid'] == 'the formId is a mock one') {
-            return ajax();
-        }
-        $val['uid'] = $this->myinfo['id'];
-        $val['create_time'] = time();
-        try {
-            Db::table('mp_formid')->insert($val);
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        return ajax($val);
-    }
-
-
-    public function getQrcode()
-    {
-        $uid = $this->myinfo['id'];
-//        $uid = 1999;
-        $app = Factory::miniProgram($this->mp_config);
-        $response = $app->app_code->getUnlimit($uid, [
-            'page' => 'pages/auth/auth',
-            'width' => '300'
-        ]);
-        $png = $uid . '.png';
-        $save_path = 'upload/appcode/';
-        if ($response instanceof \EasyWeChat\Kernel\Http\StreamResponse) {
-            $filename = $response->saveAs($save_path, $png);
-        } else {
-            return ajax($response, -1);
-        }
-        return ajax($save_path . $png);
-    }
-
-
-
 
 
 
