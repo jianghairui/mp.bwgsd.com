@@ -35,6 +35,8 @@
             <th width="80">库存</th>
             <th width="80">销量</th>
             <th width="120">上市日期</th>
+            <th width="60">尖货</th>
+            <th width="60">限时</th>
             <th width="60">状态</th>
             <th width="80">操作</th>
         </tr>
@@ -55,6 +57,20 @@
                 <td>{$li.stock}</td>
                 <td>{$li.sales}</td>
                 <td>{$li.create_time|date='Y年m月d日'}</td>
+                <td class="td-jian" onclick="goods_recommend(this,{$li.id})">
+                    {if $li['recommend'] == '1'}
+                    <span class="iconfont">&#xe612;</span>
+                    {else /}
+                    <span class="iconfont" style="color: #bbbbbb;">&#xe612;</span>
+                    {/if}
+                </td>
+                <td class="td-limit" onclick="goods_limit(this,{$li.id})">
+                    {if $li['time_limit_price'] == '1'}
+                    <span class="iconfont">&#xe612;</span>
+                    {else /}
+                    <span class="iconfont" style="color: #bbbbbb;">&#xe612;</span>
+                    {/if}
+                </td>
                 <td class="td-status">
                     {if $li['status'] == '1'}
                     <span class="label label-success radius">已上架</span>
@@ -92,6 +108,7 @@
 <script type="text/javascript" src="/lib/laypage/1.2/laypage.js"></script>
 <script type="text/javascript">
 
+    var isclick = true;
     var url = '{:url("Shop/goodsList")}' + '?<?php echo $page["query"];?>';
     var curr = '{$page.curr}',totalPage='{$page.totalPage}';
     if(totalPage > 1) {
@@ -176,6 +193,65 @@
             })
 
         });
+    }
+
+    function goods_recommend(obj,id) {
+        if(isclick) {
+            isclick = false;
+            $.ajax({
+                url:"{:url('Shop/goodsRecommend')}",
+                type:'post',
+                dataType:'json',
+                data:{id:id},
+                success:function(data) {
+                    // console.log(data);
+                    if(data.code == 1) {
+                        if(data.data == 1) {
+                            $(obj).html('<span class="iconfont">&#xe612;</span>');
+                        }else {
+                            $(obj).html('<span class="iconfont" style="color: #bbbbbb;">&#xe612;</span>');
+                        }
+                    }else {
+                        layer.msg(data.data,{icon:2,time:1000})
+                    }
+                    isclick = true;
+                },
+                error:function(data) {
+                    layer.msg('接口请求失败!',{icon:5,time:1000});
+                    isclick = true;
+                },
+            })
+        }
+
+    }
+
+    function goods_limit(obj,id) {
+        if(isclick) {
+            isclick = false;
+            $.ajax({
+                url:"{:url('Shop/goodsTimeLimit')}",
+                type:'post',
+                dataType:'json',
+                data:{id:id},
+                success:function(data) {
+                    // console.log(data);
+                    if(data.code == 1) {
+                        if(data.data == 1) {
+                            $(obj).html('<span class="iconfont">&#xe612;</span>');
+                        }else {
+                            $(obj).html('<span class="iconfont" style="color: #bbbbbb;">&#xe612;</span>');
+                        }
+                    }else {
+                        layer.msg(data.data,{icon:2,time:1000})
+                    }
+                    isclick = true;
+                },
+                error:function(data) {
+                    layer.msg('接口请求失败!',{icon:5,time:1000});
+                    isclick = true;
+                },
+            })
+        }
     }
 
     $(".sort").bind('input propertychange', function() {

@@ -399,6 +399,49 @@ class Shop extends Base {
             return ajax('共修改0条记录',-1);
         }
     }
+
+    //尖货推荐
+    public function goodsRecommend() {
+        $id = input('post.id','0');
+        $map = [
+            ['id','=',$id]
+        ];
+        try {
+            $goods_exist = Db::table('mp_goods')->where($map)->find();
+            if($goods_exist['recommend'] == 1) {
+                Db::table('mp_goods')->where($map)->update(['recommend'=>0]);
+                return ajax(0);
+            }else {
+                Db::table('mp_goods')->where($map)->update(['recommend'=>1]);
+                return ajax(1);
+            }
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+
+    }
+
+    //设为限时商品
+    public function goodsTimeLimit() {
+        $id = input('post.id','0');
+        $map = [
+            ['id','=',$id]
+        ];
+        try {
+            $goods_exist = Db::table('mp_goods')->where($map)->find();
+            if($goods_exist['time_limit_price'] == 1) {
+                Db::table('mp_goods')->where($map)->update(['time_limit_price'=>0]);
+                return ajax(0);
+            }else {
+                Db::table('mp_goods')->where($map)->update(['time_limit_price'=>1]);
+                return ajax(1);
+            }
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+    }
+
+
 //删除商品
     public function goodsDel() {
         $id = input('post.id','0');
