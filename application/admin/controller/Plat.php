@@ -49,8 +49,14 @@ class Plat extends Base {
     public function slideAddPost() {
         $val['title'] = input('post.title');
         $val['status'] = input('post.status');
+        $val['type'] = input('post.type',1);
         checkInput($val);
         $val['url'] = input('post.url');
+        if($val['type'] == 1) {
+            $val['size'] = '750*750';
+        }else {
+            $val['size'] = '1920*600';
+        }
         if(isset($_FILES['file'])) {
             $info = upload('file',$this->upload_base_path . 'slide/');
             if($info['error'] === 0) {
@@ -98,37 +104,41 @@ class Plat extends Base {
 
     //修改轮播图POST
     public function slideMod() {
-        if(request()->isPost()) {
-            $val['title'] = input('post.title');
-            $val['id'] = input('post.slideid');
-            $val['status'] = input('post.status');
-            checkInput($val);
-            $val['url'] = input('post.url');
-            try {
-                $exist = Db::table('mp_slideshow')->where('id',$val['id'])->find();
-                if(!$exist) {
-                    return ajax('非法操作',-1);
-                }
-                if(isset($_FILES['file'])) {
-                    $info = upload('file',$this->upload_base_path . 'slide/');
-                    if($info['error'] === 0) {
-                        $val['pic'] = $info['data'];
-                    }else {
-                        return ajax($info['msg'],-1);
-                    }
-                }
-                Db::table('mp_slideshow')->update($val);
-            }catch (Exception $e) {
-                if(isset($_FILES['file'])) {
-                    @unlink($val['pic']);
-                }
-                return ajax($e->getMessage(),-1);
+        $val['title'] = input('post.title');
+        $val['id'] = input('post.slideid');
+        $val['status'] = input('post.status');
+        $val['type'] = input('post.type',1);
+        checkInput($val);
+        $val['url'] = input('post.url');
+        if($val['type'] == 1) {
+            $val['size'] = '750*750';
+        }else {
+            $val['size'] = '1920*600';
+        }
+        try {
+            $exist = Db::table('mp_slideshow')->where('id',$val['id'])->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
             }
             if(isset($_FILES['file'])) {
-                @unlink($exist['pic']);
+                $info = upload('file',$this->upload_base_path . 'slide/');
+                if($info['error'] === 0) {
+                    $val['pic'] = $info['data'];
+                }else {
+                    return ajax($info['msg'],-1);
+                }
             }
-            return ajax([],1);
+            Db::table('mp_slideshow')->update($val);
+        }catch (Exception $e) {
+            if(isset($_FILES['file'])) {
+                @unlink($val['pic']);
+            }
+            return ajax($e->getMessage(),-1);
         }
+        if(isset($_FILES['file'])) {
+            @unlink($exist['pic']);
+        }
+        return ajax([],1);
     }
 
     //删除轮播图

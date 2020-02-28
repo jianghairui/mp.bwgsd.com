@@ -3,11 +3,24 @@
 </style>
 <article class="page-container">
     <form class="form form-horizontal" id="formAjax">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">展示端：</label>
+            <div class="formControls col-xs-4 col-sm-4">
+                <span class="select-box">
+                <select name="type" class="select" id="slide_type">
+                        <option value="1" {if $info['type'] == 1}selected{/if}>小程序</option>
+                        <option value="2" {if $info['type'] == 2}selected{/if}>PC</option>
+                </select>
+                </span>
+            </div>
+            <div class="col-3">
+            </div>
+        </div>
         <div class="row cl" id="picsize">
             <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span></label>
             <div class="formControls col-xs-8 col-sm-9">
-                <span style="font-size: 16px">
-                    (建议尺寸: 750*750)
+                <span style="font-size: 16px" id="resize">
+                    (建议尺寸: {$info.size})
                 </span>
             </div>
         </div>
@@ -109,9 +122,11 @@
             }
         });
 
+
         $("#btn-star").click(function(){
             $("#file").click();
         });
+
 
         $("#file").change(function(e){
             var img = e.target.files[0];
@@ -127,6 +142,17 @@
                 var src = window.URL.createObjectURL(img);
             }
             $("#fileList").html('<img class="thumbnail" src="'+src+'">');
+        });
+
+
+        $("#slide_type").change(function () {
+            var slide_type = $(this).val();
+            // console.log(slide_type);
+            if(slide_type == 1) {
+                $("#resize").text('(建议尺寸: 750*750)');
+            }else {
+                $("#resize").text('(建议尺寸: 1920*600)');
+            }
         });
 
 
