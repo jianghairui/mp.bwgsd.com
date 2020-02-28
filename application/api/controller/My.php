@@ -553,6 +553,39 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     /*------收货地址管理 END------*/
 
 
+    //商品列表
+    public function guessYouLikeList() {
+        $whereGoods = [
+            ['g.status','=',1]
+        ];
+        $order = ['g.id'=>'DESC'];
+        try {
+            $ids = Db::table('mp_goods')->alias('g')->where($whereGoods)->column('id');
+            if(empty($ids)) {
+                return ajax([]);
+            }else {
+                shuffle($ids);
+                $ids_in = array_slice($ids,0,4);
+                $whereGoods[] = ['g.id','in',$ids_in];
+            }
+            $list = Db::table('mp_goods')->alias('g')
+                ->join('mp_museum m','g.museum_id=m.id','left')
+                ->join('mp_goods_cate c','g.cate_id=c.id','left')
+                ->where($whereGoods)
+                ->order($order)
+                ->limit(0,4)
+                ->field('g.id,g.name,g.origin_price,g.price,g.pics,g.sales,g.desc,m.museum_name,c.cate_name')
+                ->select();
+        } catch(\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        foreach ($list as &$v) {
+            $v['pics'] = unserialize($v['pics']);
+        }
+        return ajax($list);
+    }
+
+
 
 
 }
