@@ -49,7 +49,7 @@ class Api extends Controller
     public function goodsList() {
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
-        $cate_id = input('post.cate_id',0);
+        $cate_id = input('post.cate_id','');
         $search = input('post.search','');
         $type = input('post.type',0);
 
