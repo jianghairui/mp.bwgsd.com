@@ -16,12 +16,13 @@ class Museum extends Base {
         $perpage = input('param.perpage',10);
         $page['query'] = http_build_query(input('param.'));
         $whereAttr = [];
+        $order = ['id'=>'DESC'];
         try {
             $count = Db::table('mp_museum')->where($whereAttr)->count();
             $page['count'] = $count;
             $page['curr'] = $curr_page;
             $page['totalPage'] = ceil($count/$perpage);
-            $list = Db::table('mp_museum')->where($whereAttr)->limit(($curr_page-1)*$perpage,$perpage)->select();
+            $list = Db::table('mp_museum')->where($whereAttr)->limit(($curr_page-1)*$perpage,$perpage)->order($order)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }

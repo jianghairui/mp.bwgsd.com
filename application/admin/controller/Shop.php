@@ -60,7 +60,7 @@ class Shop extends Base {
                 ['del','=',0]
             ];
             $cate_list = Db::table('mp_goods_cate')->where($where)->select();
-            $museum_list = Db::table('mp_museum')->select();
+            $museum_list = Db::table('mp_museum')->order(['id'=>'DESC'])->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
@@ -86,7 +86,7 @@ class Shop extends Base {
                 ['del','=',0]
             ];
             $cate_list = Db::table('mp_goods_cate')->where($where)->select();
-            $museum_list = Db::table('mp_museum')->select();
+            $museum_list = Db::table('mp_museum')->order(['id'=>'DESC'])->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
