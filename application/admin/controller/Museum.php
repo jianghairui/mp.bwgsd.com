@@ -36,6 +36,13 @@ class Museum extends Base {
             $val['museum_name'] = input('post.museum_name');
             checkInput($val);
             try {
+                $whereMuseum = [
+                    ['museum_name','=',$val['museum_name']]
+                ];
+                $museum_exist = Db::table('mp_museum')->where($whereMuseum)->find();
+                if($museum_exist) {
+                    return ajax('博物馆已存在',-1);
+                }
                 if(isset($_FILES['file'])) {
                     $info = upload('file',$this->upload_base_path . 'museum/');
                     if($info['error'] === 0) {
@@ -88,6 +95,14 @@ class Museum extends Base {
                 $museum_exist = Db::table('mp_museum')->where($whereAttr)->find();
                 if(!$museum_exist) {
                     return ajax('非法参数',-1);
+                }
+                $whereMuseum = [
+                    ['museum_name','=',$val['museum_name']],
+                    ['id','<>',$val['id']]
+                ];
+                $name_exist = Db::table('mp_museum')->where($whereMuseum)->find();
+                if($name_exist) {
+                    return ajax('博物馆已存在',-1);
                 }
                 if(isset($_FILES['file'])) {
                     $info = upload('file',$this->upload_base_path . 'museum/');
