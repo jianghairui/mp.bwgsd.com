@@ -30,7 +30,6 @@ class Api extends Base
         }
         return ajax($list);
     }
-
     //商品分类列表
     public function cateList() {
         try {
@@ -55,7 +54,6 @@ class Api extends Base
         }
         return ajax($list);
     }
-
     //商品列表
     public function goodsList() {
         $curr_page = input('post.page',1);
@@ -109,7 +107,6 @@ class Api extends Base
         }
         return ajax($list);
     }
-
     //商品详情
     public function goodsDetail() {
         $val['goods_id'] = input('post.goods_id');
@@ -155,8 +152,6 @@ class Api extends Base
         }
         return ajax($list);
     }
-
-
 
     //关于我们
     public function aboutUs() {
