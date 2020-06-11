@@ -14,14 +14,20 @@ class Shop extends Base {
     public function goodsList() {
         $param['search'] = input('param.search');
         $param['cate_id'] = input('param.cate_id');
+        $param['museum_id'] = input('param.museum_id');
         $page['query'] = http_build_query(input('param.'));
 
         $curr_page = input('param.page',1);
         $perpage = input('param.perpage',10);
-        $where = [];
+        $where = [
+            ['g.del','=',0]
+        ];
 
         if($param['cate_id']) {
             $where[] = ['g.cate_id','=',$param['cate_id']];
+        }
+        if($param['museum_id']) {
+            $where[] = ['g.museum_id','=',$param['museum_id']];
         }
         if($param['search']) {
             $where[] = ['g.name','like',"%{$param['search']}%"];
@@ -40,7 +46,7 @@ class Shop extends Base {
                 ->order(['g.id'=>'DESC'])
                 ->field('g.*,c.cate_name')
                 ->select();
-
+            $museum_list = Db::table('mp_museum')->order(['id'=>'DESC'])->select();
             $cate_list = Db::table('mp_goods_cate')->select();
         }catch (\Exception $e) {
             die('SQL错误: ' . $e->getMessage());
@@ -48,6 +54,7 @@ class Shop extends Base {
 
         $this->assign('list',$list);
         $this->assign('cate_list',$cate_list);
+        $this->assign('museum_list',$museum_list);
         $this->assign('param',$param);
         $this->assign('page',$page);
         return $this->fetch();

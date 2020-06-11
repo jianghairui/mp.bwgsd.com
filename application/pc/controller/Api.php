@@ -57,7 +57,8 @@ class Api extends Controller
         $curr_page = $curr_page ? $curr_page : 1;
         $perpage = $perpage ? $perpage : 10;
         $whereGoods = [
-            ['g.status','=',1]
+            ['g.status','=',1],
+            ['g.del','=',0]
         ];
         switch ($type) {
             case 1://限时价

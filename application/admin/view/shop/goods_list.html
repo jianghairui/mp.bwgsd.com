@@ -1,3 +1,5 @@
+<link href="/lib/select2/select2.min.css" rel="stylesheet">
+<script src="/lib/select2/select2.min.js"></script>
 <style>
     .userinfo>td>img {width:80px;height:80px}
 </style>
@@ -5,6 +7,17 @@
 <div class="page-container">
     <section id="formAjax">
         <div class="text-c">
+            <span class="select-box inline">
+				<select class="select" name="museum_id" id="museum_id" style="width: 200px;">
+                    <option value="">全部商户</option>
+                    {foreach $museum_list as $li}
+                    <option value="{$li.id}" {if $param['museum_id']==$li['id']}selected{/if}>
+                            (id:{$li.id}) -
+                            {$li.museum_name}
+                    </option>
+                    {/foreach}
+				</select>
+            </span>
             <span class="select-box inline" style="width: 120px;">
                 <select name="cate_id" id="cate_id" class="select">
                     <option value="">全部</option>
@@ -130,6 +143,7 @@
     $("#search-btn").click(function () {
         var search = $("#formAjax").find("#search").val();
         var cate_id = $("#formAjax").find("#cate_id").val();
+        var museum_id = $("#formAjax").find("#museum_id").val();
 
         var str = '';
         if(search.length != '') {
@@ -137,6 +151,9 @@
         }
         if(cate_id.length != '') {
             str += '&cate_id=' + cate_id;
+        }
+        if(museum_id.length != '') {
+            str += '&museum_id=' + museum_id;
         }
         window.location.href = '{:url("Shop/goodsList")}' + '?' + str;
     });
@@ -276,5 +293,8 @@
         })
     });
 
+    $(document).ready(function () {
+        $('#museum_id').select2();
+    })
 
 </script>

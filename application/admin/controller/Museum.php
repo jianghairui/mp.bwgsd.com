@@ -141,14 +141,16 @@ class Museum extends Base {
                 $whereGoods = [
                     ['museum_id','=',$val['id']]
                 ];
-                $card_exist = Db::table('mp_goods')->where($whereGoods)->find();
-                if($card_exist) {
-                    return ajax('此博物馆下有商品,无法删除',-1);
-                }
+                Db::table('mp_goods')->where($whereGoods)->update(['del'=>1,'museum_id'=>0]);
+//                $card_exist = Db::table('mp_goods')->where($whereGoods)->find();
+//                if($card_exist) {
+//                    return ajax('此博物馆下有商品,无法删除',-1);
+//                }
                 Db::table('mp_museum')->where($whereMuseum)->delete();
             } catch (\Exception $e) {
                 return ajax($e->getMessage(), -1);
             }
+            @unlink($museum_exist['cover']);
             return ajax();
         }
     }

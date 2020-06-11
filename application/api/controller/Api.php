@@ -67,7 +67,8 @@ class Api extends Base
         $curr_page = $curr_page ? $curr_page : 1;
         $perpage = $perpage ? $perpage : 10;
         $whereGoods = [
-            ['g.status','=',1]
+            ['g.status','=',1],
+            ['g.del','=',0]
         ];
         switch ($type) {
             case 1://限时价
@@ -143,14 +144,14 @@ class Api extends Base
 
     public function videoList() {
         try {
-            $whereGoods = [
-                ['use_video','=',1]
+            $whereVideo = [
+                ['id','=',1]
             ];
-            $list = Db::table('mp_goods')->where($whereGoods)->field('id,name,price,video_url')->select();
+            $video_exist = Db::table('mp_video')->where($whereVideo)->field('id,title,poster,video_url')->find();
         } catch(\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        return ajax($list);
+        return ajax($video_exist);
     }
 
     //关于我们

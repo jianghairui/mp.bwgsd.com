@@ -23,14 +23,16 @@
             {foreach $list as $li}
             <tr class="text-c userinfo">
                 <td>{$li.id}</td>
-                <td><input type="text" class="input-text text-c sort" value="{$li.sort}"></td>
                 <td>
-                    <div style="width: 80px;height: 80px;background-image: url('{$qiniu_weburl}{$li.poster}');background-position: center;background-repeat: no-repeat;background-size: 100%"></div>
+                    <div style="width: 120px;height: 80px;background-image: url('{$qiniu_weburl}{$li.poster}');background-position: center;background-repeat: no-repeat;background-size: 100%"></div>
                 </td>
                 <td>{$li.title}</td>
                 <td class="td-manage">
                     <a style="text-decoration:none" onclick="pagefull('视频信息','{:url("Video/videoDetail",array("id"=>$li["id"]))}')" class="ml-5" href="javascript:;" title="查看视频">
-                    <i class="Hui-iconfont">&#xe6df;</i>
+                        <i class="Hui-iconfont">&#xe6df;</i>
+                    </a>
+                    <a style="text-decoration:none" class="ml-5" onClick="video_del(this,'{$li.id}')" href="javascript:;" title="删除">
+                        <i class="Hui-iconfont">&#xe6e2;</i>
                     </a>
                 </td>
             </tr>
@@ -66,190 +68,28 @@
         });
     }
 
-    var isclick = true;
-
-    function goods_recommend(obj,id) {
-        if(isclick) {
-            isclick = false;
+    /*视频-删除*/
+    function video_del(obj,id){
+        layer.confirm('确认要删除吗？',function(index){
             $.ajax({
-                url:"{:url('Shop/goodsRecommend')}",
-                type:'post',
-                dataType:'json',
+                url: "{:url('Video/videoDel')}",
+                type: 'POST',
+                dataType: 'json',
                 data:{id:id},
-                success:function(data) {
-                    // console.log(data);
-                    if(data.code == 1) {
-                        if(data.data == 1) {
-                            $(obj).html('<span class="iconfont">&#xe612;</span>');
-                        }else {
-                            $(obj).html('<span class="iconfont" style="color: #bbbbbb;">&#xe612;</span>');
-                        }
-                    }else {
-                        layer.msg(data.data,{icon:2,time:1000})
-                    }
-                    isclick = true;
-                },
-                error:function(data) {
-                    layer.msg('接口请求失败!',{icon:5,time:1000});
-                    isclick = true;
-                },
-            })
-        }
-
-    }
-
-    function goods_batch(obj,id) {
-        if(isclick) {
-            isclick = false;
-            $.ajax({
-                url:"{:url('Shop/goodsBatch')}",
-                type:'post',
-                dataType:'json',
-                data:{id:id},
-                success:function(data) {
-                    // console.log(data);
-                    if(data.code == 1) {
-                        if(data.data == 1) {
-                            $(obj).html('<span class="iconfont">&#xe612;</span>');
-                        }else {
-                            $(obj).html('<span class="iconfont" style="color: #bbbbbb;">&#xe612;</span>');
-                        }
-                    }else {
-                        layer.msg(data.data,{icon:2,time:1000})
-                    }
-                    isclick = true;
-                },
-                error:function(data) {
-                    layer.msg('接口请求失败!',{icon:5,time:1000});
-                    isclick = true;
-                },
-            })
-        }
-
-    }
-
-    function goods_sample(obj,id) {
-        if(isclick) {
-            isclick = false;
-            $.ajax({
-                url:"{:url('Shop/goodsSample')}",
-                type:'post',
-                dataType:'json',
-                data:{id:id},
-                success:function(data) {
-                    // console.log(data);
-                    if(data.code == 1) {
-                        if(data.data == 1) {
-                            $(obj).html('<span class="iconfont">&#xe612;</span>');
-                        }else {
-                            $(obj).html('<span class="iconfont" style="color: #bbbbbb;">&#xe612;</span>');
-                        }
-                    }else {
-                        layer.msg(data.data,{icon:2,time:1000})
-                    }
-                    isclick = true;
-                },
-                error:function(data) {
-                    layer.msg('接口请求失败!',{icon:5,time:1000});
-                    isclick = true;
-                },
-            })
-        }
-
-    }
-
-    function goods_mold(obj,id) {
-        if(isclick) {
-            isclick = false;
-            $.ajax({
-                url:"{:url('Shop/goodsMold')}",
-                type:'post',
-                dataType:'json',
-                data:{id:id},
-                success:function(data) {
-                    // console.log(data);
-                    if(data.code == 1) {
-                        if(data.data == 1) {
-                            $(obj).html('<span class="iconfont">&#xe612;</span>');
-                        }else {
-                            $(obj).html('<span class="iconfont" style="color: #bbbbbb;">&#xe612;</span>');
-                        }
-                    }else {
-                        layer.msg(data.data,{icon:2,time:1000})
-                    }
-                    isclick = true;
-                },
-                error:function(data) {
-                    layer.msg('接口请求失败!',{icon:5,time:1000});
-                    isclick = true;
-                },
-            })
-        }
-
-    }
-
-    $(".sort").bind('input propertychange', function() {
-        var id = $(this).parent().prev().text();
-        var sort = $(this).val();
-        var rule = /^[0-9]{0,10}$/;
-        if(!rule.test(sort)) {
-            // $(this).val('')
-            alert('排序必须为数字,且不超过10位');
-            return;
-        }
-        if(isclick) {
-            isclick = false;
-            $.ajax({
-                url:"{:url('Shop/sortGoods')}",
-                type:"post",
-                data:{id:id,sort:sort},
-                success:function(data) {
+                success: function(data){
                     console.log(data);
-                    isclick = true;
-                },
-                error: function(data) {
-                    console.log('接口请求失败!');
-                    isclick = true;
-                }
-            })
-        }
-
-    });
-
-    $("#pcate_id").change(function () {
-        var pid = $(this).val();
-        $.ajax({
-            url: "{:url('Shop/getCateList')}" ,
-            type: 'post',
-            data:{pid:pid},
-            success: function(data){
-                // console.log(data.data)
-                if(data.code == 1) {
-                    var html = '<option value="">全部(二级分类)</option>',list = data.data;
-                    if(list.length > 0) {
-                        for(var i=0; i <list.length;i++) {
-                            html += '<option value="'+list[i].id+'">'+list[i].cate_name+'</option>';
-                        }
+                    if(data.code == 1) {
+                        $(obj).parents("tr").remove();
+                        layer.msg('已删除!',{icon:1,time:1000});
+                    }else {
+                        layer.msg(data.data,{icon:2,time:1000});
                     }
-                    $("#cate_id").html(html);
-
-                }else {
-                    layer.msg('接口异常',{icon:5,time:1000});
+                },
+                error:function(data) {
+                    console.log(data.msg);
                 }
-            },
-            error: function(res){
-                layer.msg('接口请求失败!',{icon:5,time:1000});
-                isclick = true
-            }
-        })
-    });
-
-
-    $(document).ready(function () {
-        $('#shop_id').select2();
-    });
-
-
-
+            });
+        });
+    }
 
 </script>
