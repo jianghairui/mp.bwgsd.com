@@ -50,6 +50,7 @@ class Base extends Controller
     private function checkSession()
     {
         $noneed = [
+            'Notifysms',
             'Test',
             'Diyike',
             'Login/login',
@@ -215,6 +216,30 @@ class Base extends Controller
             return ajax($e->getMessage(), -1);
         }
         return $audit;
+    }
+
+    //模板消息日志
+    protected function msglog($cmd,$str) {
+        $file= LOG_PATH . '/message.log';
+        create_dir($file);
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+
+    //短信通知日志
+    protected function smslog($cmd,$str) {
+        $file= LOG_PATH . '/sms.log';
+        create_dir($file);
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
     }
 
 

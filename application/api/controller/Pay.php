@@ -91,6 +91,7 @@ class Pay extends Base {
                             ['id','=',$order_exist['uid']]
                         ];
                         Db::table('mp_user')->where($whereUser)->setInc('spend',$order_exist['total_price']);
+                        $this->asyn_sms_send(['orderid'=>$order_exist['id']]);
                     }
                 }catch (\Exception $e) {
                     $this->excep($this->cmd,$e->getMessage());
@@ -98,6 +99,23 @@ class Pay extends Base {
             }
         }
         exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
+    }
+
+
+    protected function asyn_sms_send($data) {
+        $param = http_build_query($data);
+        $fp = @fsockopen('ssl://' . $this->domain, 443, $errno, $errstr, 20);
+        if (!$fp){
+            $this->msglog($this->cmd,'error fsockopen');
+        }else{
+            stream_set_blocking($fp,0);
+            $http = "GET /api/notifysms/goodsOrder?".$param." HTTP/1.1\r\n";
+            $http .= "Host: ".$this->domain."\r\n";
+            $http .= "Connection: Close\r\n\r\n";
+            fwrite($fp,$http);
+            usleep(1000);
+            fclose($fp);
+        }
     }
 
 
