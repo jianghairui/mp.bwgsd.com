@@ -13,9 +13,8 @@ use think\Exception;
 
 class Test extends Controller
 {
-
     //商品列表
-    private function goodsList() {
+    public function goodsList() {
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
         $cate_id = input('post.cate_id','');
