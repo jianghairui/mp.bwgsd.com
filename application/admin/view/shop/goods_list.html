@@ -8,6 +8,17 @@
     <section id="formAjax">
         <div class="text-c">
             <span class="select-box inline">
+				<select class="select" name="activity_id" id="activity_id" style="width: 200px;">
+                    <option value="">所属活动(全部)</option>
+                    <option value="0" {if $param['activity_id']==="0"}selected{/if}>无</option>
+                    {foreach $activity_list as $li}
+                    <option value="{$li.id}" {if $param['activity_id']==$li['id']}selected{/if}>
+                        {$li.title}
+                    </option>
+                    {/foreach}
+				</select>
+            </span>
+            <span class="select-box inline">
 				<select class="select" name="museum_id" id="museum_id" style="width: 200px;">
                     <option value="">全部商户</option>
                     {foreach $museum_list as $li}
@@ -144,6 +155,7 @@
         var search = $("#formAjax").find("#search").val();
         var cate_id = $("#formAjax").find("#cate_id").val();
         var museum_id = $("#formAjax").find("#museum_id").val();
+        var activity_id = $("#formAjax").find("#activity_id").val();
 
         var str = '';
         if(search.length != '') {
@@ -152,9 +164,8 @@
         if(cate_id.length != '') {
             str += '&cate_id=' + cate_id;
         }
-        if(museum_id.length != '') {
-            str += '&museum_id=' + museum_id;
-        }
+        str += '&museum_id=' + museum_id;
+        str += '&activity_id=' + activity_id;
         window.location.href = '{:url("Shop/goodsList")}' + '?' + str;
     });
 

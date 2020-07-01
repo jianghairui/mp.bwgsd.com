@@ -14,7 +14,8 @@ class Shop extends Base {
     public function goodsList() {
         $param['search'] = input('param.search');
         $param['cate_id'] = input('param.cate_id');
-        $param['museum_id'] = input('param.museum_id');
+        $param['museum_id'] = input('param.museum_id','');
+        $param['activity_id'] = input('param.activity_id','');
         $page['query'] = http_build_query(input('param.'));
 
         $curr_page = input('param.page',1);
@@ -28,6 +29,9 @@ class Shop extends Base {
         }
         if($param['museum_id']) {
             $where[] = ['g.museum_id','=',$param['museum_id']];
+        }
+        if($param['activity_id'] !== '') {
+            $where[] = ['g.activity_id','=',$param['activity_id']];
         }
         if($param['search']) {
             $where[] = ['g.name','like',"%{$param['search']}%"];
@@ -47,14 +51,15 @@ class Shop extends Base {
                 ->field('g.*,c.cate_name')
                 ->select();
             $museum_list = Db::table('mp_museum')->order(['id'=>'DESC'])->select();
+            $activity_list = Db::table('mp_activity')->order(['id'=>'DESC'])->select();
             $cate_list = Db::table('mp_goods_cate')->select();
         }catch (\Exception $e) {
             die('SQL错误: ' . $e->getMessage());
         }
-
         $this->assign('list',$list);
         $this->assign('cate_list',$cate_list);
         $this->assign('museum_list',$museum_list);
+        $this->assign('activity_list',$activity_list);
         $this->assign('param',$param);
         $this->assign('page',$page);
         return $this->fetch();
@@ -68,11 +73,13 @@ class Shop extends Base {
             ];
             $cate_list = Db::table('mp_goods_cate')->where($where)->select();
             $museum_list = Db::table('mp_museum')->order(['id'=>'DESC'])->select();
+            $activity_list = Db::table('mp_activity')->order(['id'=>'DESC'])->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
         $this->assign('cate_list',$cate_list);
         $this->assign('museum_list',$museum_list);
+        $this->assign('activity_list',$activity_list);
         return $this->fetch();
     }
 //商品详情
@@ -94,11 +101,13 @@ class Shop extends Base {
             ];
             $cate_list = Db::table('mp_goods_cate')->where($where)->select();
             $museum_list = Db::table('mp_museum')->order(['id'=>'DESC'])->select();
+            $activity_list = Db::table('mp_activity')->order(['id'=>'DESC'])->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
         $this->assign('cate_list',$cate_list);
         $this->assign('museum_list',$museum_list);
+        $this->assign('activity_list',$activity_list);
         $this->assign('info',$info);
         $this->assign('attr_list',$attr_list);
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
@@ -109,6 +118,7 @@ class Shop extends Base {
     public function goodsAddPost() {
         $val['cate_id'] = input('post.cate_id');
         $val['museum_id'] = input('post.museum_id');
+        $val['activity_id'] = input('post.activity_id');
         $val['name'] = input('post.name');
         $val['origin_price'] = input('post.origin_price');
         $val['price'] = input('post.price');
@@ -221,6 +231,7 @@ class Shop extends Base {
     public function goodsMod() {
         $val['cate_id'] = input('post.cate_id');
         $val['museum_id'] = input('post.museum_id');
+        $val['activity_id'] = input('post.activity_id');
         $val['name'] = input('post.name');
         $val['origin_price'] = input('post.origin_price');
         $val['price'] = input('post.price');

@@ -44,6 +44,44 @@ class Api extends Base
         }
         return ajax($list);
     }
+    //商品列表
+    public function activityDetail() {
+        $post['activity_id'] = input('post.activity_id','');
+        checkPost($post);
+        $whereGoods = [
+            ['g.status','=',1],
+            ['g.activity_id','=',$post['activity_id']],
+            ['g.del','=',0]
+        ];
+        $whereActivity = [
+            ['id','=',$post['activity_id']]
+        ];
+        $order = ['g.id'=>'DESC'];
+        try {
+            $exist = Db::table('mp_activity')->where($whereActivity)->find();
+            if(!$exist) {
+                return ajax('活动id不存在',-4);
+            }
+            $list = Db::table('mp_goods')->alias('g')
+                ->join('mp_museum m','g.museum_id=m.id','left')
+                ->join('mp_goods_cate c','g.cate_id=c.id','left')
+                ->where($whereGoods)
+                ->order($order)
+                ->field('g.id,g.name,g.origin_price,g.price,g.pics,g.sales,g.desc,m.museum_name,c.cate_name')
+                ->select();
+        } catch(\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        foreach ($list as &$v) {
+            $v['pics'] = unserialize($v['pics']);
+        }
+        $exist['list'] = $list;
+        $exist['byyl'] = 'https://shop.bwg.art/static/byyl.jpg?123';
+        $exist['qttj'] = 'https://shop.bwg.art/static/qttj.png';
+        $exist['zhtz'] = 'https://shop.bwg.art/static/zhtz.png';
+        $exist['comb'] = 'https://shop.bwg.art/static/comb.png';
+        return ajax($exist);
+    }
     //博物馆列表
     public function museumList() {
         try {
@@ -68,6 +106,7 @@ class Api extends Base
         $perpage = $perpage ? $perpage : 10;
         $whereGoods = [
             ['g.status','=',1],
+            ['g.activity_id','=',0],
             ['g.del','=',0]
         ];
         switch ($type) {

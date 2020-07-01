@@ -552,7 +552,6 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     }
     /*------收货地址管理 END------*/
 
-
     //商品列表
     public function guessYouLikeList() {
         $whereGoods = [
@@ -573,7 +572,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                 ->join('mp_goods_cate c','g.cate_id=c.id','left')
                 ->where($whereGoods)
                 ->order($order)
-                ->limit(0,4)
+                ->limit(0,8)
                 ->field('g.id,g.name,g.origin_price,g.price,g.pics,g.sales,g.desc,m.museum_name,c.cate_name')
                 ->select();
         } catch(\Exception $e) {
