@@ -56,7 +56,7 @@ class Api extends Base
         $whereActivity = [
             ['id','=',$post['activity_id']]
         ];
-        $order = ['g.id'=>'DESC'];
+        $order = ['g.sort'=>'ASC','g.id'=>'DESC'];
         try {
             $exist = Db::table('mp_activity')->where($whereActivity)->find();
             if(!$exist) {
