@@ -62,6 +62,7 @@ class Shop extends Base {
         $this->assign('activity_list',$activity_list);
         $this->assign('param',$param);
         $this->assign('page',$page);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
 //添加商品
@@ -111,7 +112,6 @@ class Shop extends Base {
         $this->assign('info',$info);
         $this->assign('attr_list',$attr_list);
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
-
         return $this->fetch();
     }
 //添加商品POST
@@ -194,15 +194,21 @@ class Shop extends Base {
                     return ajax('最多上传'.$limit.'张图片',-1);
                 }
                 foreach ($image as $v) {
-                    if(!file_exists($v)) {
-                        return ajax('请重新上传图片',-1);
+                    $qiniu_exist = $this->qiniuFileExist($v);
+                    if($qiniu_exist !== true) {
+                        return ajax('图片已失效请重新上传',-1);
                     }
                 }
-                foreach ($image as $v) {
-                    $image_array[] = rename_file($v,$this->upload_base_path . 'goods/');
-                }
             }else {
-                return ajax('请上传图片',-1);
+                return ajax('请上传商品图片',-1);
+            }
+            foreach ($image as $v) {
+                $qiniu_move = $this->moveFile($v,'upload/goods/');
+                if($qiniu_move['code'] == 0) {
+                    $image_array[] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],-3);
+                }
             }
             $val['pics'] = serialize($image_array);
             $goods_id = Db::table('mp_goods')->insertGetId($val);
@@ -221,7 +227,7 @@ class Shop extends Base {
         }catch (\Exception $e) {
             $this->rs_delete($val['video_url']);
             foreach ($image_array as $v) {
-                @unlink($v);
+                $this->rs_delete($v);
             }
             return ajax($e->getMessage(),-1);
         }
@@ -315,15 +321,21 @@ class Shop extends Base {
                     return ajax('最多上传'.$limit.'张图片',-1);
                 }
                 foreach ($image as $v) {
-                    if(!file_exists($v)) {
-                        return ajax('请重新上传图片',-1);
+                    $qiniu_exist = $this->qiniuFileExist($v);
+                    if($qiniu_exist !== true) {
+                        return ajax('图片已失效请重新上传',-1);
                     }
                 }
-                foreach ($image as $v) {
-                    $image_array[] = rename_file($v,$this->upload_base_path . 'goods/');
-                }
             }else {
-                return ajax('请上传图片',-1);
+                return ajax('请上传商品图片',-1);
+            }
+            foreach ($image as $v) {
+                $image_move = $this->moveFile($v,'upload/goods/');
+                if($image_move['code'] == 0) {
+                    $image_array[] = $image_move['path'];
+                }else {
+                    return ajax($image_move['msg'],-2);
+                }
             }
             $val['pics'] = serialize($image_array);
             Db::table('mp_goods')->where($map)->update($val);
@@ -364,7 +376,7 @@ class Shop extends Base {
             }
             foreach ($image_array as $v) {
                 if(!in_array($v,$old_pics)) {
-                    @unlink($v);
+                    $this->rs_delete($v);
                 }
             }
             return ajax($e->getMessage(),-1);
@@ -376,7 +388,7 @@ class Shop extends Base {
         }
         foreach ($old_pics as $v) {
             if(!in_array($v,$image_array)) {
-                @unlink($v);
+                $this->rs_delete($v);
             }
         }
         return ajax([],1);
@@ -503,6 +515,7 @@ class Shop extends Base {
             die($e->getMessage());
         }
         $this->assign('list',$list);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
 //添加分类
@@ -546,6 +559,8 @@ class Shop extends Base {
             die($e->getMessage());
         }
         $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+
         return $this->fetch();
     }
 //修改分类POST
@@ -816,6 +831,8 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             die($e->getMessage());
         }
         $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+
         return $this->fetch();
     }
 

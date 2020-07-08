@@ -28,6 +28,7 @@ class Museum extends Base {
         }
         $this->assign('list',$list);
         $this->assign('page',$page);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
     //添加博物馆
@@ -80,6 +81,7 @@ class Museum extends Base {
             return ajax($e->getMessage(), -1);
         }
         $this->assign('info',$museum_exist);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
     //编辑博物馆
