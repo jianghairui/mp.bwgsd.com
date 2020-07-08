@@ -526,21 +526,24 @@ class Shop extends Base {
     public function cateAddPost() {
         $val['cate_name'] = input('post.cate_name');
         checkInput($val);
+        $icon = input('post.icon');
         try {
-            if(isset($_FILES['file'])) {
-                $info = upload('file',$this->upload_base_path . 'goodscate/');
-                if($info['error'] === 0) {
-                    $val['icon'] = $info['data'];
-                }else {
-                    return ajax($info['msg'],-1);
+            if($icon) {
+                $qiniu_exist = $this->qiniuFileExist($icon);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'],-1);
                 }
-            }else {
-                return ajax('请上传ICON',-1);
+                $qiniu_move = $this->moveFile($icon,'upload/goodscate/');
+                if($qiniu_move['code'] == 0) {
+                    $val['icon'] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],-2);
+                }
             }
             Db::table('mp_goods_cate')->insert($val);
         }catch (\Exception $e) {
             if(isset($val['icon'])) {
-                @unlink($val['icon']);
+                $this->rs_delete($val['icon']);
             }
             return ajax($e->getMessage(),-1);
         }
@@ -568,6 +571,7 @@ class Shop extends Base {
         $val['cate_name'] = input('post.cate_name');
         $val['id'] = input('post.id');
         checkInput($val);
+        $icon = input('post.icon');
         try {
             $whereCate = [
                 ['id','=',$val['id']]
@@ -576,23 +580,27 @@ class Shop extends Base {
             if(!$cate_exist) {
                 return ajax('非法参数',-1);
             }
-            if(isset($_FILES['file'])) {
-                $info = upload('file',$this->upload_base_path . 'goodscate/');
-                if($info['error'] === 0) {
-                    $val['icon'] = $info['data'];
+            if($icon) {
+                $qiniu_exist = $this->qiniuFileExist($icon);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'],-1);
+                }
+                $qiniu_move = $this->moveFile($icon,'upload/goodscate/');
+                if($qiniu_move['code'] == 0) {
+                    $val['icon'] = $qiniu_move['path'];
                 }else {
-                    return ajax($info['msg'],-1);
+                    return ajax($qiniu_move['msg'],-2);
                 }
             }
             Db::table('mp_goods_cate')->where($whereCate)->update($val);
         }catch (\Exception $e) {
-            if(isset($val['icon'])) {
-                @unlink($val['icon']);
+            if(isset($val['icon']) && $val['icon'] != $cate_exist['icon']) {
+                $this->rs_delete($val['icon']);
             }
             return ajax($e->getMessage(),-1);
         }
-        if(isset($val['icon'])) {
-            @unlink($cate_exist['icon']);
+        if(isset($val['icon']) && $val['icon'] != $cate_exist['icon']) {
+            $this->rs_delete($cate_exist['icon']);
         }
         return ajax([]);
     }

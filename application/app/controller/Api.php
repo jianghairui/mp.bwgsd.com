@@ -121,7 +121,7 @@ class Api extends Base {
         foreach ($list as &$v) {
             $v['pic'] = unserialize($v['pics'])[0];
         }
-        usleep(300000);
+//        usleep(300000);
         return ajax($list);
     }
 
