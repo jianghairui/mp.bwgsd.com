@@ -10,6 +10,7 @@
                     <option value="">全部</option>
                     <option value="1" {if $param['type'] == 1}selected{/if}>小程序</option>
                     <option value="2" {if $param['type'] == 2}selected{/if}>PC</option>
+                    <option value="3" {if $param['type'] == 3}selected{/if}>APP</option>
                 </select>
             </span>
             <button name="" id="search-btn" class="btn btn-success" style="height: 28px;" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找</button>
@@ -42,7 +43,7 @@
                 <td>{$li.id}</td>
                 <td><input type="text" class="input-text text-c sort" value="{$li.sort}"></td>
                 <td>
-                    <img class="thumbnail" src="/{$li.pic}">
+                    <img class="thumbnail" src="{$qiniu_weburl}{$li.pic}">
                 </td>
                 <td class="text-c">{$li.title}</td>
                 <td class="text-l">{$li.url}</td>
@@ -50,6 +51,7 @@
                     {switch $li['type']}
                     {case 1}小程序{/case}
                     {case 2}PC{/case}
+                    {case 3}APP{/case}
                     {default /} DEFAULT
                     {/switch}
                 </td>

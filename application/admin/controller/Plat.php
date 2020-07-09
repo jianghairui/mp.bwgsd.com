@@ -37,6 +37,7 @@ class Plat extends Base {
         $this->assign('list',$list);
         $this->assign('page',$page);
         $this->assign('param',$param);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
 
     }
@@ -50,40 +51,32 @@ class Plat extends Base {
         $val['title'] = input('post.title');
         $val['status'] = input('post.status');
         $val['type'] = input('post.type',1);
+        $val['pic'] = input('post.pic');
         checkInput($val);
         $val['url'] = input('post.url');
-        if($val['type'] == 1) {
+        if($val['type'] == 1 || $val['type'] == 3) {
             $val['size'] = '750*750';
         }else {
             $val['size'] = '1920*600';
         }
-        if(isset($_FILES['file'])) {
-            $info = upload('file',$this->upload_base_path . 'slide/');
-            if($info['error'] === 0) {
-                $val['pic'] = $info['data'];
-            }else {
-                return ajax($info['msg'],-1);
-            }
-        }else {
-            return ajax('请上传图片',-1);
-        }
-
         try {
-            $res = Db::table('mp_slideshow')->insert($val);
-        }catch (\Exception $e) {
-            if(isset($val['pic'])) {
-                @unlink($val['pic']);
+            $qiniu_exist = $this->qiniuFileExist($val['pic']);
+            if($qiniu_exist !== true) {
+                return ajax($qiniu_exist['msg'],-1);
             }
+            $qiniu_move = $this->moveFile($val['pic'],'upload/slide/');
+            if($qiniu_move['code'] == 0) {
+                $val['pic'] = $qiniu_move['path'];
+            }else {
+                return ajax($qiniu_move['msg'],-1);
+            }
+            Db::table('mp_slideshow')->insert($val);
+        }catch (\Exception $e) {
+            $this->rs_delete($val['pic']);
             return ajax($e->getMessage(),-1);
         }
-        if($res) {
-            return ajax([],1);
-        }else {
-            if(isset($val['pic'])) {
-                @unlink($val['pic']);
-            }
-            return ajax('添加失败',-1);
-        }
+        return ajax([],1);
+
     }
 
     //修改轮播图
@@ -97,7 +90,7 @@ class Plat extends Base {
         if(!$exist) {
             $this->error('非法操作',url('Banner/slideshow'));
         }
-
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         $this->assign('info',$exist);
         return $this->fetch();
     }
@@ -108,9 +101,10 @@ class Plat extends Base {
         $val['id'] = input('post.slideid');
         $val['status'] = input('post.status');
         $val['type'] = input('post.type',1);
+        $val['pic'] = input('post.pic');
         checkInput($val);
         $val['url'] = input('post.url');
-        if($val['type'] == 1) {
+        if($val['type'] == 1 || $val['type'] == 3) {
             $val['size'] = '750*750';
         }else {
             $val['size'] = '1920*600';
@@ -120,23 +114,25 @@ class Plat extends Base {
             if(!$exist) {
                 return ajax('非法操作',-1);
             }
-            if(isset($_FILES['file'])) {
-                $info = upload('file',$this->upload_base_path . 'slide/');
-                if($info['error'] === 0) {
-                    $val['pic'] = $info['data'];
-                }else {
-                    return ajax($info['msg'],-1);
-                }
+            $qiniu_exist = $this->qiniuFileExist($val['pic']);
+            if($qiniu_exist !== true) {
+                return ajax($qiniu_exist['msg'],-1);
+            }
+            $qiniu_move = $this->moveFile($val['pic'],'upload/slide/');
+            if($qiniu_move['code'] == 0) {
+                $val['pic'] = $qiniu_move['path'];
+            }else {
+                return ajax($qiniu_move['msg'],-1);
             }
             Db::table('mp_slideshow')->update($val);
         }catch (Exception $e) {
-            if(isset($_FILES['file'])) {
-                @unlink($val['pic']);
+            if($val['pic'] !== $exist['pic']) {
+                $this->rs_delete($val['pic']);
             }
             return ajax($e->getMessage(),-1);
         }
-        if(isset($_FILES['file'])) {
-            @unlink($exist['pic']);
+        if($val['pic'] !== $exist['pic']) {
+            $this->rs_delete($exist['pic']);
         }
         return ajax([],1);
     }
@@ -157,7 +153,7 @@ class Plat extends Base {
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        @unlink($exist['pic']);
+        $this->rs_delete($exist['pic']);
         return ajax([],1);
     }
 

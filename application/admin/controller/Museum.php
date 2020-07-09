@@ -35,6 +35,7 @@ class Museum extends Base {
     public function museumAdd() {
         if(request()->isPost()) {
             $val['museum_name'] = input('post.museum_name');
+            $val['cover'] = input('post.cover');
             checkInput($val);
             try {
                 $whereMuseum = [
@@ -44,21 +45,19 @@ class Museum extends Base {
                 if($museum_exist) {
                     return ajax('博物馆已存在',-1);
                 }
-                if(isset($_FILES['file'])) {
-                    $info = upload('file',$this->upload_base_path . 'museum/');
-                    if($info['error'] === 0) {
-                        $val['cover'] = $info['data'];
-                    }else {
-                        return ajax($info['msg'],-1);
-                    }
+                $qiniu_exist = $this->qiniuFileExist($val['cover']);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'],-1);
+                }
+                $qiniu_move = $this->moveFile($val['cover'],'upload/museum/');
+                if($qiniu_move['code'] == 0) {
+                    $val['cover'] = $qiniu_move['path'];
                 }else {
-                    return ajax('请上传图片',-1);
+                    return ajax($qiniu_move['msg'],-1);
                 }
                 Db::table('mp_museum')->insert($val);
             } catch (\Exception $e) {
-                if(isset($val['cover'])) {
-                    @unlink($val['cover']);
-                }
+                $this->rs_delete($val['cover']);
                 return ajax($e->getMessage(), -1);
             }
             return ajax();
@@ -89,6 +88,7 @@ class Museum extends Base {
         if(request()->isPost()) {
             $val['museum_name'] = input('post.museum_name');
             $val['id'] = input('post.id');
+            $val['cover'] = input('post.cover');
             checkInput($val);
             try {
                 $whereAttr = [
@@ -106,23 +106,25 @@ class Museum extends Base {
                 if($name_exist) {
                     return ajax('博物馆已存在',-1);
                 }
-                if(isset($_FILES['file'])) {
-                    $info = upload('file',$this->upload_base_path . 'museum/');
-                    if($info['error'] === 0) {
-                        $val['cover'] = $info['data'];
-                    }else {
-                        return ajax($info['msg'],-1);
-                    }
+                $qiniu_exist = $this->qiniuFileExist($val['cover']);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'],-1);
+                }
+                $qiniu_move = $this->moveFile($val['cover'],'upload/museum/');
+                if($qiniu_move['code'] == 0) {
+                    $val['cover'] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],-1);
                 }
                 Db::table('mp_museum')->where($whereAttr)->update($val);
             } catch (\Exception $e) {
-                if(isset($val['cover'])) {
-                    @unlink($val['cover']);
+                if($val['cover'] !== $museum_exist['cover']) {
+                    $this->rs_delete($val['cover']);
                 }
                 return ajax($e->getMessage(), -1);
             }
-            if(isset($val['cover'])) {
-                @unlink($museum_exist['cover']);
+            if($val['cover'] !== $museum_exist['cover']) {
+                $this->rs_delete($museum_exist['cover']);
             }
             return ajax();
         }
@@ -152,7 +154,7 @@ class Museum extends Base {
             } catch (\Exception $e) {
                 return ajax($e->getMessage(), -1);
             }
-            @unlink($museum_exist['cover']);
+            $this->rs_delete($museum_exist['cover']);
             return ajax();
         }
     }
